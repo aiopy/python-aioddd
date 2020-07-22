@@ -47,6 +47,8 @@ __all__ = (
     'EventHandler',
     'EventBus',
     'SimpleEventBus',
+    'find_event_mapper_by_name',
+    'find_event_mapper_by_type',
     # value_objects
     'Id',
     'Timestamp'
