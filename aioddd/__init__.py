@@ -16,6 +16,8 @@ from .events import Event, EventMapper, EventPublisher, EventHandler, EventBus, 
 from .value_objects import Timestamp, Id
 
 __all__ = (
+    'Aggregate',
+    'AggregateRoot',
     # cqrs
     'Command',
     'CommandHandler',
