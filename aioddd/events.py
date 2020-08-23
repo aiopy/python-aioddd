@@ -73,7 +73,7 @@ def find_event_mapper_by_type(msg: Event, mappers: List[EventMapper]) -> EventMa
     for mapper in mappers:
         if mapper.belongs_to(msg):
             return mapper
-    raise EventMapperNotFoundError.create(detail={'type': type(msg)})
+    raise EventMapperNotFoundError.create(detail={'type': str(type(msg))})
 
 
 class EventPublisher(ABC):
