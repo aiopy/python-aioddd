@@ -25,10 +25,13 @@ class CommandBus(ABC):
 
 
 class SimpleCommandBus(CommandBus):
-    __slots__ = '_handlers'
+    _handlers: List[CommandHandler]
 
     def __init__(self, handlers: List[CommandHandler]) -> None:
         self._handlers = handlers
+
+    def add_handler(self, handler: CommandHandler) -> None:
+        self._handlers.append(handler)
 
     async def dispatch(self, command: Command) -> None:
         handlers = [handler for handler in self._handlers if isinstance(command, handler.subscribed_to())]
@@ -65,10 +68,13 @@ class QueryBus(ABC):
 
 
 class SimpleQueryBus(QueryBus):
-    __slots__ = '_handlers'
+    _handlers: List[QueryHandler]
 
     def __init__(self, handlers: List[QueryHandler]):
         self._handlers = handlers
+
+    def add_handler(self, handler: QueryHandler) -> None:
+        self._handlers.append(handler)
 
     async def ask(self, query: Query) -> OptionalResponse:
         handlers = [handler for handler in self._handlers if isinstance(query, handler.subscribed_to())]

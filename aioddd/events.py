@@ -99,9 +99,22 @@ class EventBus(ABC):
 
 
 class SimpleEventBus(EventBus):
-    __slots__ = '_handlers'
+    _handlers: Dict[Any, List[EventHandler]]
 
     def __init__(self, handlers: List[EventHandler]):
+        self._handlers = self._map_event_handlers(handlers)
+
+    def add_handler(self, handler: EventHandler) -> None:
+        self._handlers = self._map_event_handlers([*list(self._handlers.values()), handler])
+
+    async def notify(self, events: List[Event]) -> None:
+        for event_type, handler in self._handlers:
+            for event in events:
+                if isinstance(event, event_type):
+                    await handler.handle([event])
+
+    @staticmethod
+    def _map_event_handlers(handlers: List[EventHandler]) -> Dict[Any, List[EventHandler]]:
         _handlers: Dict[Any, List[EventHandler]] = {}
         for handler in handlers:
             for event in handler.subscribed_to():
@@ -109,10 +122,4 @@ class SimpleEventBus(EventBus):
                     _handlers[event].append(handler)
                 else:
                     _handlers[event] = [handler]
-        self._handlers = _handlers
-
-    async def notify(self, events: List[Event]) -> None:
-        for event_type, handler in self._handlers:
-            for event in events:
-                if isinstance(event, event_type):
-                    await handler.handle([event])
+        return _handlers
