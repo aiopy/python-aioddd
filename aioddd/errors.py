@@ -3,6 +3,10 @@ from typing import Dict, Optional, Any, final
 from uuid import uuid4
 
 
+def raise_(err: BaseException) -> BaseException:
+    raise err
+
+
 class BaseError(Exception):
     _id: str
     _code: str = 'code'

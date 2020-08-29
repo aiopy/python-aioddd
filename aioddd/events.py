@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from calendar import timegm
 from datetime import datetime
-from typing import List, Dict, Union, Type, Any
+from typing import List, Dict, Union, Type, Any, final
 from uuid import uuid4
 
 from .errors import EventMapperNotFoundError
@@ -76,10 +76,46 @@ def find_event_mapper_by_type(msg: Event, mappers: List[EventMapper]) -> EventMa
     raise EventMapperNotFoundError.create(detail={'type': str(type(msg))})
 
 
+class ConfigEventMappers:
+    _mappers: List[EventMapper]
+
+    def __init__(self, mappers: List[EventMapper]) -> None:
+        self._mappers = mappers
+
+    def add(self, mappers: Union[EventMapper, List[EventMapper]]) -> None:
+        if isinstance(mappers, EventMapper):
+            self._mappers.append(mappers)
+        elif isinstance(mappers, list):
+            for mapper in mappers:
+                self._mappers.append(mapper)
+
+    def all(self) -> List[EventMapper]:
+        return self._mappers
+
+
 class EventPublisher(ABC):
     @abstractmethod
     async def publish(self, events: List[Event]) -> None:
         pass
+
+
+@final
+class EventPublishers(EventPublisher):
+    _publishers: List[EventPublisher]
+
+    def __init__(self, publishers: List[EventPublisher]) -> None:
+        self._publishers = publishers
+
+    def add(self, publishers: Union[EventPublisher, List[EventPublisher]]) -> None:
+        if isinstance(publishers, EventPublisher):
+            self._publishers.append(publishers)
+        elif isinstance(publishers, list):
+            for publisher in publishers:
+                self._publishers.append(publisher)
+
+    async def publish(self, events: List[Event]) -> None:
+        for publisher in self._publishers:
+            await publisher.publish(events)
 
 
 class EventHandler(ABC):
@@ -99,27 +135,17 @@ class EventBus(ABC):
 
 
 class SimpleEventBus(EventBus):
-    _handlers: Dict[Any, List[EventHandler]]
+    _handlers: List[EventHandler]
 
     def __init__(self, handlers: List[EventHandler]):
-        self._handlers = self._map_event_handlers(handlers)
+        self._handlers = handlers
 
     def add_handler(self, handler: EventHandler) -> None:
-        self._handlers = self._map_event_handlers([*list(self._handlers.values()), handler])
+        self._handlers.append(handler)
 
     async def notify(self, events: List[Event]) -> None:
-        for event_type, handler in self._handlers:
-            for event in events:
-                if isinstance(event, event_type):
-                    await handler.handle([event])
-
-    @staticmethod
-    def _map_event_handlers(handlers: List[EventHandler]) -> Dict[Any, List[EventHandler]]:
-        _handlers: Dict[Any, List[EventHandler]] = {}
-        for handler in handlers:
-            for event in handler.subscribed_to():
-                if isinstance(_handlers[event], list):
-                    _handlers[event].append(handler)
-                else:
-                    _handlers[event] = [handler]
-        return _handlers
+        for event in events:
+            for handler in self._handlers:
+                for event_type in handler.subscribed_to():
+                    if isinstance(event, event_type):
+                        await handler.handle([event])
