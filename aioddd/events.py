@@ -140,8 +140,11 @@ class SimpleEventBus(EventBus):
     def __init__(self, handlers: List[EventHandler]):
         self._handlers = handlers
 
-    def add_handler(self, handler: EventHandler) -> None:
-        self._handlers.append(handler)
+    def add_handler(self, handler: Union[EventHandler, List[EventHandler]]) -> None:
+        if isinstance(handler, EventHandler):
+            self._handlers.append(handler)
+        elif isinstance(handler, list):
+            self.add_handler(handler=handler)
 
     async def notify(self, events: List[Event]) -> None:
         for event in events:
@@ -149,3 +152,13 @@ class SimpleEventBus(EventBus):
                 for event_type in handler.subscribed_to():
                     if isinstance(event, event_type):
                         await handler.handle([event])
+
+
+class InternalEventPublisher(EventPublisher):
+    __slots__ = '_event_bus'
+
+    def __init__(self, event_bus: EventBus) -> None:
+        self._event_bus = event_bus
+
+    async def publish(self, events: List[Event]) -> None:
+        await self._event_bus.notify(events=events)

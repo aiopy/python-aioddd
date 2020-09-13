@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List, Type, TypedDict, Union
+from typing import Optional, List, Type, TypedDict, Union, Any
 
 from .errors import CommandNotRegisteredError, QueryNotRegisteredError
 
@@ -30,8 +30,11 @@ class SimpleCommandBus(CommandBus):
     def __init__(self, handlers: List[CommandHandler]) -> None:
         self._handlers = handlers
 
-    def add_handler(self, handler: CommandHandler) -> None:
-        self._handlers.append(handler)
+    def add_handler(self, handler: Union[CommandHandler, List[CommandHandler]]) -> None:
+        if isinstance(handler, CommandHandler):
+            self._handlers.append(handler)
+        elif isinstance(handler, list):
+            self.add_handler(handler=handler)
 
     async def dispatch(self, command: Command) -> None:
         handlers = [handler for handler in self._handlers if isinstance(command, handler.subscribed_to())]
@@ -48,7 +51,7 @@ class Response(TypedDict):
     pass
 
 
-OptionalResponse = Optional[Union[Response, List[Response]]]
+OptionalResponse = Optional[Union[Any, Response, List[Response]]]
 
 
 class QueryHandler(ABC):
@@ -73,8 +76,11 @@ class SimpleQueryBus(QueryBus):
     def __init__(self, handlers: List[QueryHandler]):
         self._handlers = handlers
 
-    def add_handler(self, handler: QueryHandler) -> None:
-        self._handlers.append(handler)
+    def add_handler(self, handler: Union[QueryHandler, List[QueryHandler]]) -> None:
+        if isinstance(handler, QueryHandler):
+            self._handlers.append(handler)
+        elif isinstance(handler, list):
+            self.add_handler(handler=handler)
 
     async def ask(self, query: Query) -> OptionalResponse:
         handlers = [handler for handler in self._handlers if isinstance(query, handler.subscribed_to())]
