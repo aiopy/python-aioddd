@@ -11,7 +11,7 @@ from .errors import \
     IdInvalidError, \
     TimestampInvalidError, DateTimeInvalidError, \
     EventMapperNotFoundError, EventNotPublishedError, \
-    CommandNotRegisteredError, QueryNotRegisteredError
+    CommandNotRegisteredError, QueryNotRegisteredError, UnauthorizedError, ForbiddenError
 from .events import Event, EventMapper, EventPublisher, EventHandler, EventBus, SimpleEventBus, \
     find_event_mapper_by_name, find_event_mapper_by_type, EventPublishers, ConfigEventMappers, \
     EventMapperNotFoundError, InternalEventPublisher
@@ -38,6 +38,8 @@ __all__ = (
     'NotFoundError',
     'ConflictError',
     'BadRequestError',
+    'UnauthorizedError',
+    'ForbiddenError',
     'UnknownError',
     'IdInvalidError',
     'TimestampInvalidError',
@@ -64,7 +66,7 @@ __all__ = (
     'get_simple_logger',
     # value_objects
     'Id',
-    'Timestamp'
+    'Timestamp',
 )
 
 

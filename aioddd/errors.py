@@ -75,6 +75,16 @@ class BadRequestError(BaseError):
     _title = 'Bad Request',
 
 
+class UnauthorizedError(BaseError):
+    _code = 'unauthorized',
+    _title = 'Unauthorized',
+
+
+class ForbiddenError(BaseError):
+    _code = 'forbidden',
+    _title = 'Forbidden',
+
+
 @final
 class UnknownError(BaseError):
     _code = 'unknown',
