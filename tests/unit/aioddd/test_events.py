@@ -1,10 +1,11 @@
+from unittest.mock import Mock
+
 import pytest
 
 from aioddd import (
     ConfigEventMappers,
     Event,
     EventBus,
-    EventHandler,
     EventMapper,
     EventMapperNotFoundError,
     EventPublisher,
@@ -14,7 +15,7 @@ from aioddd import (
     find_event_mapper_by_name,
     find_event_mapper_by_type,
 )
-from aioddd.testing import mock
+from aioddd.testing import AsyncMock, mock
 
 
 def test_event_and_event_mapper() -> None:
@@ -168,21 +169,21 @@ async def test_event_publishers() -> None:
 
 @pytest.mark.asyncio
 async def test_simple_event_bus() -> None:
-    event_handler_mock1 = mock(EventHandler, ['subscribed_to', 'handle'])
-    event_handler_mock2 = mock(EventHandler, ['subscribed_to', 'handle'])
-    event_handler_mock3 = mock(EventHandler, ['subscribed_to', 'handle'])
+    event_handler_mock1 = Mock()
+    event_handler_mock2 = Mock()
+    event_handler_mock3 = Mock()
 
     class _EventTest(Event):
         pass
 
     event = _EventTest({})
 
-    event_handler_mock1.subscribed_to.return_value = [_EventTest]
-    event_handler_mock1.handle.return_value = None
-    event_handler_mock2.subscribed_to.return_value = [_EventTest]
-    event_handler_mock2.handle.return_value = None
-    event_handler_mock3.subscribed_to.return_value = [_EventTest]
-    event_handler_mock3.handle.return_value = None
+    event_handler_mock1.subscribed_to = lambda: [_EventTest]
+    event_handler_mock1.handle = AsyncMock(return_value=None)
+    event_handler_mock2.subscribed_to = lambda: [_EventTest]
+    event_handler_mock2.handle = AsyncMock(return_value=None)
+    event_handler_mock3.subscribed_to = lambda: [_EventTest]
+    event_handler_mock3.handle = AsyncMock(return_value=None)
 
     bus = SimpleEventBus(handlers=[event_handler_mock1])
     bus.add_handler(handler=event_handler_mock2)
@@ -190,11 +191,8 @@ async def test_simple_event_bus() -> None:
 
     await bus.notify(events=[event])
 
-    event_handler_mock1.subscribed_to.assert_called_once()
     event_handler_mock1.handle.assert_called_once()
-    event_handler_mock2.subscribed_to.assert_called_once()
     event_handler_mock2.handle.assert_called_once()
-    event_handler_mock3.subscribed_to.assert_called_once()
     event_handler_mock3.handle.assert_called_once()
 
 
