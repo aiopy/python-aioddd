@@ -41,9 +41,10 @@ class Timestamp:  # pragma: no cover
     def __init__(self, value: float, utc: bool = True, tz: Optional[tzinfo] = None) -> None:
         try:
             if utc:
-                self._value = int(datetime.utcfromtimestamp(value))  # type: ignore
+                datetime.utcfromtimestamp(value)
             else:
-                self._value = int(datetime.fromtimestamp(value, tz))  # type: ignore
+                datetime.fromtimestamp(value, tz)
+            self._value = int(value)
         except Exception as err:
             raise TimestampInvalidError.create(detail={'timestamp': int(value)}).with_exception(err)
 
