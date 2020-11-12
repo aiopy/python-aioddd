@@ -1,20 +1,53 @@
-[tool.poetry]
+[metadata]
 name = "aioddd"
-version = "1.1.2"
+version = "1.1.3"
 description = "Async Python DDD utilities library."
 license = "MIT"
 authors = ["ticdenis <denisnavarroalcaide@outlook.es>"]
 readme = "README.md"
 repository = "https://github.com/ticdenis/python-aioddd"
-documentation = "https://github.com/ticdenis/python-aioddd/blob/master/README.md"
+documentation = "https://github.com/ticdenis/python-aiodd/blob/master/README.md"
 keywords = ["ddd", "hexagonal", "cqrs", "aio", "async"]
 classifiers = ["Topic :: Software Development :: Libraries :: Python Modules"]
 include = ["LICENSE", "README.md"]
 
-[tool.poetry.dependencies]
-python = "^3.6"
-uuid = "^1.30"
-
 [build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+build-backend = "setuptools.build_meta"
+requires = ["setuptools>=30.3.0", "wheel>=0.35.1"]
+
+[tool.black]
+include = '\.pyi?$'
+line-length = 120
+skip-string-normalization = true
+
+[tool.isort]
+profile = "black"
+
+[tool.liccheck]
+authorized_licenses = ["MIT", "BSD", "PSF", "Python Software Foundation", "Apache License 2.0", "Apache Software", "LGPL", "Mozilla Public License 2.0 (MPL 2.0)", "MPL 2.0", "GPL", "GNU General Public License (GPL)"]
+unauthorized_licenses = []
+[tool.liccheck.authorized_packages]
+uuid = "1.30"
+filelock = "3.0.12"
+
+[tool.pylint.master]
+jobs = "0"
+[tool.pylint.messages_control]
+disable = "C0103,C0114,C0115,C0116,C0205,C0301,R0903,R1704,R1725,W0212,W0235,W0236,W0611,W0622,W0707"
+
+[tool.pytest.ini_options]
+cache_dir = "var/cache/.pytest_cache"
+addopts = "-q -n auto -p no:warnings --no-cov-on-fail"
+testpaths = ["tests"]
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py36
+isolated_build = True
+toxworkdir = var/tox
+skipsdist = True
+
+[testenv]
+deps = -r requirements-dev.txt
+"""

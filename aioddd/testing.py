@@ -1,10 +1,22 @@
-from typing import Optional, Union, Dict, Any, List
-from unittest.mock import AsyncMock, Mock, patch
+import sys
+from typing import Any, Dict, List, Optional, Union
+from unittest.mock import MagicMock, Mock, patch
+
+if sys.version_info.major == 3 and sys.version_info.minor >= 8:
+    import unittest  # pragma: no cover
+
+    AsyncMock = getattr(unittest.mock, 'AsyncMock')  # pragma: no cover
+else:
+
+    class AsyncMock(MagicMock):  # type: ignore
+        async def __call__(self, *args, **kwargs) -> None:  # type: ignore
+            return super(AsyncMock, self).__call__(*args, **kwargs)
+
 
 SanitizeObject = Union[Dict[Any, Any], List[Any]]
 
 
-def sanitize_objects(source: SanitizeObject, affected: SanitizeObject) -> SanitizeObject:
+def sanitize_objects(source: SanitizeObject, affected: SanitizeObject) -> SanitizeObject:  # pragma: no cover
     for key, value in list(affected.items()) if isinstance(affected, dict) else enumerate(affected):
         if not isinstance(affected, list) and key not in source:
             affected.pop(key)

@@ -1,9 +1,8 @@
-from typing import final, TypeVar, Optional, Type
+from typing import Optional, Type, TypeVar
 
 _T = TypeVar('_T')
 
 
-@final
 class Container(dict):
     def set(self, key: str, val: _T) -> None:
         """
@@ -20,7 +19,7 @@ class Container(dict):
             here = here.setdefault(key, {})
         here[keys[-1]] = val
 
-    def get(self, key: str, typ: Optional[Type[_T]] = None) -> _T:
+    def get(self, key: str, typ: Optional[Type[_T]] = None) -> _T:  # type: ignore
         """
         e.g. 1
         container = Container({'config': {'version': '0.1.0'})
@@ -42,7 +41,7 @@ class Container(dict):
         except KeyError:
             raise KeyError(f'<{key}{f": {typ.__name__}" if typ else ""}> does not exist in container')
 
-    def __contains__(self, *o) -> bool:
+    def __contains__(self, *o) -> bool:  # type: ignore
         """
         e.g. 1
         container = Container({'config': '...'})
@@ -55,5 +54,5 @@ class Container(dict):
         try:
             self.get(o[0])
             return True
-        except IndexError:
+        except (IndexError, KeyError, TypeError):
             return False
