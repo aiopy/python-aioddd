@@ -11,17 +11,17 @@ class Command(ABC):
 class CommandHandler(ABC):
     @abstractmethod
     def subscribed_to(self) -> Type[Command]:
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     async def handle(self, command: Command) -> None:
-        pass
+        pass  # pragma: no cover
 
 
 class CommandBus(ABC):
     @abstractmethod
     async def dispatch(self, command: Command) -> None:
-        pass
+        pass  # pragma: no cover
 
 
 class SimpleCommandBus(CommandBus):
@@ -57,23 +57,23 @@ OptionalResponse = Optional[Union[Any, Response, List[Response]]]
 class QueryHandler(ABC):
     @abstractmethod
     def subscribed_to(self) -> Type[Query]:
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     async def handle(self, query: Query) -> OptionalResponse:
-        pass
+        pass  # pragma: no cover
 
 
 class QueryBus(ABC):
     @abstractmethod
     async def ask(self, query: Query) -> OptionalResponse:
-        pass
+        pass  # pragma: no cover
 
 
 class SimpleQueryBus(QueryBus):
     _handlers: List[QueryHandler]
 
-    def __init__(self, handlers: List[QueryHandler]):
+    def __init__(self, handlers: List[QueryHandler]) -> None:
         self._handlers = handlers
 
     def add_handler(self, handler: Union[QueryHandler, List[QueryHandler]]) -> None:
