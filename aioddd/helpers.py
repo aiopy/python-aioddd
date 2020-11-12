@@ -7,4 +7,4 @@ if sys.version_info.major == 3 and sys.version_info.minor <= 6:
     MonkeyPatch.patch_fromisoformat()
 
 
-datetime_fromisoformat = datetime.fromisoformat
+datetime_fromisoformat = getattr(datetime, 'fromisoformat')
