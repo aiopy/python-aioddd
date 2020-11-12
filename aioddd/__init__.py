@@ -1,25 +1,56 @@
-from abc import ABC
-from typing import List
-
+# type: ignore
+# pylint: skip-file
+from .aggregates import Aggregate, AggregateRoot
 from .container import Container
-from .cqrs import \
-    Command, CommandHandler, CommandBus, SimpleCommandBus, \
-    Query, Response, OptionalResponse, QueryHandler, QueryBus, SimpleQueryBus
-from .errors import \
-    BaseError, \
-    NotFoundError, ConflictError, BadRequestError, UnknownError, \
-    IdInvalidError, \
-    TimestampInvalidError, DateTimeInvalidError, \
-    EventMapperNotFoundError, EventNotPublishedError, \
-    CommandNotRegisteredError, QueryNotRegisteredError, UnauthorizedError, ForbiddenError
-from .events import Event, EventMapper, EventPublisher, EventHandler, EventBus, SimpleEventBus, \
-    find_event_mapper_by_name, find_event_mapper_by_type, EventPublishers, ConfigEventMappers, \
-    EventMapperNotFoundError, InternalEventPublisher
+from .cqrs import (
+    Command,
+    CommandBus,
+    CommandHandler,
+    OptionalResponse,
+    Query,
+    QueryBus,
+    QueryHandler,
+    Response,
+    SimpleCommandBus,
+    SimpleQueryBus,
+)
+from .errors import (
+    BadRequestError,
+    BaseError,
+    CommandNotRegisteredError,
+    ConflictError,
+    DateTimeInvalidError,
+    EventMapperNotFoundError,
+    EventNotPublishedError,
+    ForbiddenError,
+    IdInvalidError,
+    NotFoundError,
+    QueryNotRegisteredError,
+    TimestampInvalidError,
+    UnauthorizedError,
+    UnknownError,
+)
+from .events import (
+    ConfigEventMappers,
+    Event,
+    EventBus,
+    EventHandler,
+    EventMapper,
+    EventMapperNotFoundError,
+    EventPublisher,
+    EventPublishers,
+    InternalEventPublisher,
+    SimpleEventBus,
+    find_event_mapper_by_name,
+    find_event_mapper_by_type,
+)
 from .utils import get_env, get_simple_logger
-from .value_objects import Timestamp, Id
+from .value_objects import Id, StrDateTime, Timestamp
 
 __all__ = (
+    # di
     'Container',
+    # aggregates
     'Aggregate',
     'AggregateRoot',
     # cqrs
@@ -44,7 +75,6 @@ __all__ = (
     'IdInvalidError',
     'TimestampInvalidError',
     'DateTimeInvalidError',
-    'EventMapperNotFoundError',
     'EventNotPublishedError',
     'CommandNotRegisteredError',
     'QueryNotRegisteredError',
@@ -67,23 +97,5 @@ __all__ = (
     # value_objects
     'Id',
     'Timestamp',
+    'StrDateTime',
 )
-
-
-class Aggregate(ABC):
-    pass
-
-
-class AggregateRoot(Aggregate):
-    _events: List[Event]
-
-    def __init__(self) -> None:
-        self._events = []
-
-    def pull_aggregate_events(self) -> List[Event]:
-        _events = self._events
-        self._events = []
-        return _events
-
-    def record_aggregate_event(self, event: Event) -> None:
-        self._events.append(event)

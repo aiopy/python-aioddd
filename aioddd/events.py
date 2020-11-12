@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from calendar import timegm
 from datetime import datetime
-from typing import List, Dict, Union, Type, Any, final
+from typing import Any, Dict, List, Type, Union
 from uuid import uuid4
 
 from .errors import EventMapperNotFoundError
@@ -10,7 +10,7 @@ from .errors import EventMapperNotFoundError
 class Event(ABC):
     __slots__ = ('_id', '_type', '_occurred_on', '_attributes')
 
-    def __init__(self, attributes: Dict[str, Any], **kwargs):
+    def __init__(self, attributes: Dict[str, Any], **kwargs) -> None:  # type: ignore
         self._id = kwargs.get('id', str(uuid4()))
         self._type = kwargs.get('type', 'event')
         self._occurred_on = kwargs.get('occurred_on', timegm(datetime.utcnow().utctimetuple()))
@@ -30,15 +30,15 @@ class Event(ABC):
 class EventMapper(ABC):
     @abstractmethod
     def belongs_to(self, msg: Event) -> bool:
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def service_name(self) -> str:
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def name(self) -> str:
-        pass
+        pass  # pragma: no cover
 
     def encode(self, msg: Event) -> Dict[str, Any]:
         attrs = self.map_attributes(msg)
@@ -48,14 +48,12 @@ class EventMapper(ABC):
             'type': meta['type'],
             'occurredOn': meta['occurredOn'],
             'attributes': attrs,
-            'meta': {
-                'message': f'{self.service_name()}.{self.name()}'
-            },
+            'meta': {'message': f'{self.service_name()}.{self.name()}'},
         }
 
     @abstractmethod
     def decode(self, data: Dict[str, Any]) -> Event:
-        pass
+        pass  # pragma: no cover
 
     @staticmethod
     def map_attributes(msg: Event) -> Dict[str, Any]:
@@ -96,10 +94,9 @@ class ConfigEventMappers:
 class EventPublisher(ABC):
     @abstractmethod
     async def publish(self, events: List[Event]) -> None:
-        pass
+        pass  # pragma: no cover
 
 
-@final
 class EventPublishers(EventPublisher):
     _publishers: List[EventPublisher]
 
@@ -107,11 +104,10 @@ class EventPublishers(EventPublisher):
         self._publishers = publishers
 
     def add(self, publishers: Union[EventPublisher, List[EventPublisher]]) -> None:
-        if isinstance(publishers, EventPublisher):
-            self._publishers.append(publishers)
-        elif isinstance(publishers, list):
-            for publisher in publishers:
-                self._publishers.append(publisher)
+        if not isinstance(publishers, list):
+            publishers = [publishers]
+        for publisher in publishers:
+            self._publishers.append(publisher)
 
     async def publish(self, events: List[Event]) -> None:
         for publisher in self._publishers:
@@ -121,17 +117,17 @@ class EventPublishers(EventPublisher):
 class EventHandler(ABC):
     @abstractmethod
     def subscribed_to(self) -> List[Type[Event]]:
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     async def handle(self, events: List[Event]) -> None:
-        pass
+        pass  # pragma: no cover
 
 
 class EventBus(ABC):
     @abstractmethod
     async def notify(self, events: List[Event]) -> None:
-        pass
+        pass  # pragma: no cover
 
 
 class SimpleEventBus(EventBus):
@@ -141,10 +137,10 @@ class SimpleEventBus(EventBus):
         self._handlers = handlers
 
     def add_handler(self, handler: Union[EventHandler, List[EventHandler]]) -> None:
-        if isinstance(handler, EventHandler):
-            self._handlers.append(handler)
-        elif isinstance(handler, list):
-            self.add_handler(handler=handler)
+        if not isinstance(handler, list):
+            handler = [handler]
+        for handler_ in handler:
+            self._handlers.append(handler_)
 
     async def notify(self, events: List[Event]) -> None:
         for event in events:
