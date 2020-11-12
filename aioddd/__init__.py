@@ -1,8 +1,6 @@
 # type: ignore
 # pylint: skip-file
-from abc import ABC
-from typing import List
-
+from .aggregates import Aggregate, AggregateRoot
 from .container import Container
 from .cqrs import (
     Command,
@@ -47,10 +45,12 @@ from .events import (
     find_event_mapper_by_type,
 )
 from .utils import get_env, get_simple_logger
-from .value_objects import Id, Timestamp
+from .value_objects import Id, StrDateTime, Timestamp
 
 __all__ = (
+    # di
     'Container',
+    # aggregates
     'Aggregate',
     'AggregateRoot',
     # cqrs
@@ -97,23 +97,5 @@ __all__ = (
     # value_objects
     'Id',
     'Timestamp',
+    'StrDateTime',
 )
-
-
-class Aggregate(ABC):
-    pass
-
-
-class AggregateRoot(Aggregate):
-    _events: List[Event]
-
-    def __init__(self) -> None:
-        self._events = []
-
-    def pull_aggregate_events(self) -> List[Event]:
-        _events = self._events
-        self._events = []
-        return _events
-
-    def record_aggregate_event(self, event: Event) -> None:
-        self._events.append(event)

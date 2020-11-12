@@ -54,5 +54,5 @@ class Container(dict):
         try:
             self.get(o[0])
             return True
-        except IndexError:
+        except (IndexError, KeyError, TypeError):
             return False

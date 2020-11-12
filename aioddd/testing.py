@@ -3,9 +3,9 @@ from typing import Any, Dict, List, Optional, Union
 from unittest.mock import MagicMock, Mock, patch
 
 if sys.version_info.major == 3 and sys.version_info.minor >= 8:
-    import unittest
+    import unittest  # pragma: no cover
 
-    AsyncMock = getattr(unittest.mock, 'AsyncMock')
+    AsyncMock = getattr(unittest.mock, 'AsyncMock')  # pragma: no cover
 else:
 
     class AsyncMock(MagicMock):  # type: ignore
@@ -16,7 +16,7 @@ else:
 SanitizeObject = Union[Dict[Any, Any], List[Any]]
 
 
-def sanitize_objects(source: SanitizeObject, affected: SanitizeObject) -> SanitizeObject:
+def sanitize_objects(source: SanitizeObject, affected: SanitizeObject) -> SanitizeObject:  # pragma: no cover
     for key, value in list(affected.items()) if isinstance(affected, dict) else enumerate(affected):
         if not isinstance(affected, list) and key not in source:
             affected.pop(key)

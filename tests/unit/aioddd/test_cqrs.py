@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import Mock
 
 import pytest
 
@@ -10,6 +10,7 @@ from aioddd import (
     SimpleCommandBus,
     SimpleQueryBus,
 )
+from aioddd.testing import AsyncMock
 
 
 @pytest.mark.asyncio

@@ -4,7 +4,7 @@ from uuid import uuid4
 
 
 def raise_(err: BaseException) -> BaseException:
-    raise err
+    raise err  # pragma: no cover
 
 
 class BaseError(Exception):
@@ -21,19 +21,25 @@ class BaseError(Exception):
         self._title = kwargs.get('title', self._title)
         self._detail = dumps(kwargs.get('detail', {}))
         self._meta = kwargs.get('meta', {})
-        if self._has_a_system_exit_exception():
-            raise SystemExit(self._meta.get('exception'))
+        self.ensure_there_is_not_a_system_exit()
 
     @classmethod
-    def create(cls, detail: Optional[Dict[str, Any]] = None, meta: Optional[Dict[str, Any]] = None) -> 'BaseError':
-        return cls(id=str(uuid4()), detail=detail or {}, meta=meta or {})
-
-    def _has_a_system_exit_exception(self) -> bool:
-        return self._meta.get('exception_type', None) is SystemExit
+    def create(
+        cls,
+        detail: Optional[Dict[str, Any]] = None,
+        meta: Optional[Dict[str, Any]] = None,
+        **kwargs: Dict[str, Any],
+    ) -> 'BaseError':
+        return cls(detail=detail or {}, meta=meta or {}, **kwargs)
 
     def with_exception(self, err: BaseException) -> 'BaseError':
         self._meta.update({'exception': str(err), 'exception_type': str(type(err))})
+        self.ensure_there_is_not_a_system_exit()
         return self
+
+    def ensure_there_is_not_a_system_exit(self) -> None:
+        if self._meta.get('exception_type', None) == '<class \'SystemExit\'>':
+            raise SystemExit(self._meta.get('exception'))
 
     def id(self) -> str:
         return self._id

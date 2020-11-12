@@ -35,7 +35,7 @@ class Id:
         return self._value
 
 
-class Timestamp:
+class Timestamp:  # pragma: no cover
     __slots__ = '_value'
 
     def __init__(self, value: float, utc: bool = True, tz: Optional[tzinfo] = None) -> None:
@@ -60,7 +60,7 @@ class Timestamp:
         return self._value
 
 
-class StrDateTime:
+class StrDateTime:  # pragma: no cover
     __slots__ = ('_value', '_format')
 
     def __init__(self, value: str, fmt: str = '%Y-%m-%d %H:%M') -> None:
