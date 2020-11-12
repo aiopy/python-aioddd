@@ -2,12 +2,14 @@ import sys
 from typing import Any, Dict, List, Optional, Union
 from unittest.mock import MagicMock, Mock, patch
 
-if sys.version_info >= (3, 8):
-    from unittest.mock import AsyncMock
+if sys.version_info.major == 3 and sys.version_info.minor >= 8:
+    import unittest
+
+    AsyncMock = getattr(unittest, 'AsyncMock')
 else:
 
-    class AsyncMock(MagicMock):
-        async def __call__(self, *args, **kwargs):
+    class AsyncMock(MagicMock):  # type: ignore
+        async def __call__(self, *args, **kwargs) -> None:  # type: ignore
             return super(AsyncMock, self).__call__(*args, **kwargs)
 
 

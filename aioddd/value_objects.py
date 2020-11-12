@@ -4,6 +4,7 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from .errors import IdInvalidError, TimestampInvalidError
+from .helpers import datetime_fromisoformat
 
 
 class Id:
@@ -63,7 +64,7 @@ class StrDateTime:
     __slots__ = ('_value', '_format')
 
     def __init__(self, value: str, fmt: str = '%Y-%m-%d %H:%M') -> None:
-        self._value = datetime.fromisoformat(value).__format__(fmt)
+        self._value = datetime_fromisoformat(value).__format__(fmt)
         self._format = fmt
 
     @classmethod
