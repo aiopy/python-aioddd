@@ -1,5 +1,15 @@
-from typing import Optional, Union, Dict, Any, List
-from unittest.mock import AsyncMock, Mock, patch
+import sys
+from typing import Any, Dict, List, Optional, Union
+from unittest.mock import MagicMock, Mock, patch
+
+if sys.version_info >= (3, 8):
+    from unittest.mock import AsyncMock
+else:
+
+    class AsyncMock(MagicMock):
+        async def __call__(self, *args, **kwargs):
+            return super(AsyncMock, self).__call__(*args, **kwargs)
+
 
 SanitizeObject = Union[Dict[Any, Any], List[Any]]
 

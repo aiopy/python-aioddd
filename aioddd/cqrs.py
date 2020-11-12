@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List, Type, TypedDict, Union, Any
+from typing import Any, List, Optional, Type, Union
 
 from .errors import CommandNotRegisteredError, QueryNotRegisteredError
 
@@ -31,10 +31,10 @@ class SimpleCommandBus(CommandBus):
         self._handlers = handlers
 
     def add_handler(self, handler: Union[CommandHandler, List[CommandHandler]]) -> None:
-        if isinstance(handler, CommandHandler):
-            self._handlers.append(handler)
-        elif isinstance(handler, list):
-            self.add_handler(handler=handler)
+        if not isinstance(handler, list):
+            handler = [handler]
+        for handler_ in handler:
+            self._handlers.append(handler_)
 
     async def dispatch(self, command: Command) -> None:
         handlers = [handler for handler in self._handlers if isinstance(command, handler.subscribed_to())]
@@ -47,7 +47,7 @@ class Query(ABC):
     pass
 
 
-class Response(TypedDict):
+class Response(dict):
     pass
 
 
@@ -77,10 +77,10 @@ class SimpleQueryBus(QueryBus):
         self._handlers = handlers
 
     def add_handler(self, handler: Union[QueryHandler, List[QueryHandler]]) -> None:
-        if isinstance(handler, QueryHandler):
-            self._handlers.append(handler)
-        elif isinstance(handler, list):
-            self.add_handler(handler=handler)
+        if not isinstance(handler, list):
+            handler = [handler]
+        for handler_ in handler:
+            self._handlers.append(handler_)
 
     async def ask(self, query: Query) -> OptionalResponse:
         handlers = [handler for handler in self._handlers if isinstance(query, handler.subscribed_to())]
