@@ -14,12 +14,20 @@ pip install aioddd
 
 ```python
 from asyncio import get_event_loop
+from dataclasses import dataclass
 from typing import Type
 from aioddd import NotFoundError, \
     Command, CommandHandler, SimpleCommandBus, \
-    Query, QueryHandler, OptionalResponse, SimpleQueryBus
+    Query, QueryHandler, OptionalResponse, SimpleQueryBus, Event
 
 _products = []
+
+class ProductStored(Event):
+    @dataclass
+    class Attributes:
+        ref: str
+
+    attributes: Attributes
 
 class StoreProductCommand(Command):
     def __init__(self, ref: str):

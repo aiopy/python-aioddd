@@ -1,3 +1,4 @@
+from dataclasses import asdict, dataclass
 from unittest.mock import Mock
 
 import pytest
@@ -10,6 +11,7 @@ from aioddd import (
     EventMapperNotFoundError,
     EventPublisher,
     EventPublishers,
+    Id,
     InternalEventPublisher,
     SimpleEventBus,
     find_event_mapper_by_name,
@@ -20,57 +22,43 @@ from aioddd.testing import AsyncMock, mock
 
 def test_event_and_event_mapper() -> None:
     class _EventTest(Event):
-        def __init__(self, foo: str, **kwargs) -> None:
-            super().__init__({'foo': foo}, **kwargs)
+        @dataclass
+        class Attributes:
+            __slots__ = ('foo',)
+            foo: str
 
-    event = _EventTest(foo='test', id='test', occurred_on='test')
+        attributes: Attributes
 
-    assert event.get_meta()['id'] == 'test'
-    assert event.get_meta()['type'] == 'event'
-    assert event.get_meta()['occurredOn'] == 'test'
-    assert event.get_attributes()['foo'] == 'test'
+    event = _EventTest(attributes=_EventTest.Attributes(foo='test'))
+
+    assert Id.validate(event.meta.id)
+    assert event.meta.type == 'event'
+    assert event.attributes.foo == 'test'
 
     class _EventTestEventMapper(EventMapper):
-        def belongs_to(self, msg: Event) -> bool:
-            return isinstance(msg, _EventTest)
-
-        def service_name(self) -> str:
-            return 'test_service_name'
-
-        def name(self) -> str:
-            return 'test_name'
-
-        def decode(self, data: dict) -> Event:
-            return _EventTest(foo=data['attributes']['foo'], id=data['id'], occurred_on=data['occurredOn'])
+        event_type = _EventTest
+        service_name = 'test_service_name'
+        event_name = 'test_name'
 
     event_mapper = _EventTestEventMapper()
 
     assert event_mapper.belongs_to(event)
-    assert event_mapper.service_name() == 'test_service_name'
-    assert event_mapper.name() == 'test_name'
+    assert event_mapper.service_name == 'test_service_name'
+    assert event_mapper.event_name == 'test_name'
 
     event_encoded = event_mapper.encode(event)
 
-    assert event_encoded['attributes'] == EventMapper.map_attributes(event)
+    assert event_encoded['attributes'] == asdict(event.attributes)
     event_decoded = event_mapper.decode(event_encoded)
 
-    assert event_decoded.get_meta() == event.get_meta()
-    assert event_decoded.get_attributes() == event.get_attributes()
+    assert event_decoded.meta == event.meta
+    assert event_decoded.attributes == event.attributes
 
 
 def test_find_event_mapper_by_name() -> None:
     class _TestEventMapper(EventMapper):
-        def belongs_to(self, msg: Event) -> bool:
-            pass
-
-        def service_name(self) -> str:
-            return 'svc'
-
-        def name(self) -> str:
-            return 'name'
-
-        def decode(self, data: dict) -> Event:
-            pass
+        service_name = 'svc'
+        event_name = 'name'
 
     mappers = [_TestEventMapper()]
     event_mapper = find_event_mapper_by_name(name='svc.name', mappers=mappers)
@@ -86,17 +74,7 @@ def test_find_event_mapper_by_type() -> None:
         pass
 
     class _TestEventMapper(EventMapper):
-        def belongs_to(self, msg: Event) -> bool:
-            return isinstance(msg, _EventTest)
-
-        def service_name(self) -> str:
-            pass
-
-        def name(self) -> str:
-            pass
-
-        def decode(self, data: dict) -> Event:
-            pass
+        event_type = _EventTest
 
     mappers = [_TestEventMapper()]
     event_mapper = find_event_mapper_by_type(msg=_EventTest({}), mappers=mappers)
@@ -111,26 +89,13 @@ def test_not_find_event_mapper_by_type() -> None:
 
 
 def test_config_event_mappers() -> None:
-    class _EmptyTestEventMapper(EventMapper):
-        def belongs_to(self, msg: Event) -> bool:
-            pass
-
-        def service_name(self) -> str:
-            pass
-
-        def name(self) -> str:
-            pass
-
-        def decode(self, data: dict) -> Event:
-            pass
-
-    class _TestEventMapper1(_EmptyTestEventMapper):
+    class _TestEventMapper1(EventMapper):
         pass
 
-    class _TestEventMapper2(_EmptyTestEventMapper):
+    class _TestEventMapper2(EventMapper):
         pass
 
-    class _TestEventMapper3(_EmptyTestEventMapper):
+    class _TestEventMapper3(EventMapper):
         pass
 
     sut = ConfigEventMappers(mappers=[_TestEventMapper1()])
@@ -176,7 +141,7 @@ async def test_simple_event_bus() -> None:
     class _EventTest(Event):
         pass
 
-    event = _EventTest({})
+    event = _EventTest()
 
     event_handler_mock1.subscribed_to = lambda: [_EventTest]
     event_handler_mock1.handle = AsyncMock(return_value=None)
@@ -203,7 +168,7 @@ async def test_internal_event_publisher() -> None:
     class _EventTest(Event):
         pass
 
-    event = _EventTest({})
+    event = _EventTest()
 
     event_bus_mock.notify.return_value = None
 
