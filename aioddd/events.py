@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from calendar import timegm
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Type, Union
 from uuid import uuid4
@@ -7,62 +8,69 @@ from uuid import uuid4
 from .errors import EventMapperNotFoundError
 
 
-class Event(ABC):
-    __slots__ = ('_id', '_type', '_occurred_on', '_attributes')
+@dataclass
+class Event:
+    """Class for keeping track of an Event."""
 
-    def __init__(self, attributes: Dict[str, Any], **kwargs) -> None:  # type: ignore
-        self._id = kwargs.get('id', str(uuid4()))
-        self._type = kwargs.get('type', 'event')
-        self._occurred_on = kwargs.get('occurred_on', timegm(datetime.utcnow().utctimetuple()))
-        self._attributes = attributes
+    @dataclass
+    class Attributes:
+        """Class for keeping track of an Attributes of Event."""
 
-    def get_meta(self) -> Dict[str, Union[str, int]]:
-        return {
-            'id': self._id,
-            'type': self._type,
-            'occurredOn': self._occurred_on,
-        }
+    @dataclass
+    class Meta:
+        """Class for keeping track of a Metas of Event."""
 
-    def get_attributes(self) -> Dict[str, Any]:
-        return self._attributes
+        __slots__ = ('id', 'type', 'occurred_on')
+        id: str
+        type: str
+        occurred_on: int
+
+    attributes: Attributes = field(default_factory=lambda: Event.Attributes())
+    meta: Meta = field(
+        default_factory=lambda: Event.Meta(
+            id=str(uuid4()),
+            type='event',
+            occurred_on=timegm(datetime.utcnow().utctimetuple()),
+        )
+    )
 
 
-class EventMapper(ABC):
-    @abstractmethod
+class EventMapper:
+    __slots__ = ('event_type', 'service_name', 'event_name')
+
+    event_type: Type[Event]
+    service_name: str
+    event_name: str
+
     def belongs_to(self, msg: Event) -> bool:
-        pass  # pragma: no cover
-
-    @abstractmethod
-    def service_name(self) -> str:
-        pass  # pragma: no cover
-
-    @abstractmethod
-    def name(self) -> str:
-        pass  # pragma: no cover
+        return isinstance(msg, self.event_type)
 
     def encode(self, msg: Event) -> Dict[str, Any]:
-        attrs = self.map_attributes(msg)
-        meta = msg.get_meta()
         return {
-            'id': meta['id'],
-            'type': meta['type'],
-            'occurredOn': meta['occurredOn'],
-            'attributes': attrs,
-            'meta': {'message': f'{self.service_name()}.{self.name()}'},
+            **asdict(msg.meta),
+            'attributes': self.map_attributes(msg.attributes),
+            'meta': {'message': f'{self.service_name}.{self.event_name}'},
         }
 
-    @abstractmethod
     def decode(self, data: Dict[str, Any]) -> Event:
-        pass  # pragma: no cover
+        attributes = self.event_type.Attributes(**data['attributes'])  # type: ignore
+        return self.event_type(
+            attributes=attributes,
+            meta=self.event_type.Meta(
+                id=data['id'],
+                type=data['type'],
+                occurred_on=data['occurred_on'],
+            ),
+        )
 
     @staticmethod
-    def map_attributes(msg: Event) -> Dict[str, Any]:
-        return msg.get_attributes()
+    def map_attributes(attributes: Event.Attributes) -> Dict[str, Any]:
+        return asdict(attributes)
 
 
 def find_event_mapper_by_name(name: str, mappers: List[EventMapper]) -> EventMapper:
     for mapper in mappers:
-        if f'{mapper.service_name()}.{mapper.name()}' == name:
+        if f'{mapper.service_name}.{mapper.event_name}' == name:
             return mapper
     raise EventMapperNotFoundError.create(detail={'name': name})
 
