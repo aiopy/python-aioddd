@@ -32,8 +32,7 @@ def test_container() -> None:
 
     container.set(key='config.tz', val=tz)
     container.set(key='services.foo', val=svc)
-    container.set(key=_MyService, val=my_svc)
-    container.set(key=my_another_svc)
+    container.resolve([(_MyService, my_svc), my_another_svc])
 
     assert container.__contains__('config.tz')
     assert container.__contains__('services.foo')

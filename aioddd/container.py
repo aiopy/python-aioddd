@@ -1,16 +1,66 @@
-from typing import Any, Optional, Type, TypeVar, Union, cast
+from inspect import signature
+from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar, Union, cast
 
 _T = TypeVar('_T')
 
+_primitives = (bytes, bytearray, bool, int, float, str, dict, tuple, list, set, slice, map, zip)
+
+
+def _is_primitive(val: Any) -> bool:
+    return isinstance(val, _primitives)  # type: ignore
+
 
 def _is_object(val: Any) -> bool:
-    return isinstance(val, object) and not isinstance(
-        val, (bytes, bytearray, bool, int, float, str, dict, tuple, list, set, slice, map, zip)  # type: ignore
-    )
+    return isinstance(val, object) and not isinstance(val, type) and not _is_primitive(val)
+
+
+def _is_simple(val: Any) -> bool:
+    return not _is_object(val)
+
+
+ContainerKey = Union[str, Type[Any], object]
+ContainerValue = _T  # type: ignore
 
 
 class Container(dict):
-    def set(self, key: Union[str, Type[Any], object], val: _T = ...) -> None:  # type: ignore
+    def resolve(self, items: List[Union[ContainerKey, Tuple[ContainerKey, ContainerValue]]]) -> None:  # type: ignore
+        items_ = items.copy()
+        while items_:
+            for index, item in enumerate(items_):
+                # Sanitize item
+                item_ = item
+                if not isinstance(item_, tuple):
+                    item_ = (item_, item_)
+                if len(item_) < 2:
+                    items_.append(item_[0])
+                # Check if already exist
+                if item_[1] in self:
+                    del items_[index]
+                    continue
+                # Resolve 2nd arg if is a primitive or instance
+                if not isinstance(item_[1], type):
+                    self.set(item_[0], item_[1])
+                    del items_[index]
+                    continue
+                # Resolve or Postpone 2nd arg if is a type
+                parameters = signature(item_[1]).parameters.items()
+                kwargs: Dict[str, Any] = {}
+                for parameter in parameters:
+                    typ: Type[Any] = parameter[1].annotation
+                    if typ in _primitives:
+                        raise TypeError(f'Parameter {parameter[0]} can not be primitive to self-resolve')
+                    if typ in self:
+                        kwargs.update({parameter[0]: self.get(typ)})
+                        continue
+                    items_.append(typ)
+                    kwargs = {}
+                    break
+                # Resolve 2nd arg when all args are ready
+                if len(parameters) == len(kwargs.keys()):
+                    self.set(item_[0], item_[1](**kwargs))
+                    del items_[index]
+
+    def set(self, key: ContainerKey, val: ContainerValue = ...) -> None:  # type: ignore
         """
         e.g. 1
         container = Container()
@@ -22,17 +72,17 @@ class Container(dict):
         container.set('config.version', '0.1.0')  # {'config': {'version': '0.1.0'}}
         """
         here = self
-        if isinstance(key, type) and val is not ...:
+        if isinstance(key, type):
             key = f'{key.__module__}.{key.__name__}'
-        if _is_object(key) and val is ...:
-            val = key  # type: ignore
+        if _is_object(key):
+            val = key
             key = f'{key.__class__.__module__}.{key.__class__.__name__}'
         keys = cast(str, key).split('.')
         for key in keys[:-1]:
             here = here.setdefault(key, {})
         here[keys[-1]] = val
 
-    def get(self, key: Union[str, Type[Any], object], typ: Optional[Type[_T]] = None) -> _T:  # type: ignore
+    def get(self, key: ContainerKey, typ: Optional[Type[ContainerValue]] = None) -> ContainerValue:  # type: ignore
         """
         e.g. 1
         container = Container({'config': {'version': '0.1.0'}, 'app.libs.MyClass': '...'})
