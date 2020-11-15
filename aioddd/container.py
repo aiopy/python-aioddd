@@ -32,7 +32,7 @@ class Container(dict):
                 if not isinstance(item_, tuple):
                     item_ = (item_, item_)
                 if len(item_) < 2:
-                    items_.append(item_[0])
+                    item_ = (item_[0], item_[0])
                 # Check if already exist
                 if item_[1] in self:
                     del items_[index]
