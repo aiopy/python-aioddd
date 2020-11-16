@@ -19,48 +19,40 @@ def _is_simple(val: Any) -> bool:
 
 
 ContainerKey = Union[str, Type[Any], object]
-ContainerValue = _T  # type: ignore
 
 
 class Container(dict):
-    def resolve(self, items: List[Union[ContainerKey, Tuple[ContainerKey, ContainerValue]]]) -> None:  # type: ignore
-        items_ = items.copy()
+    debug: bool = False
+
+    def resolve(self, items: List[Union[ContainerKey, Tuple[ContainerKey, _T]]]) -> None:
+        items_ = list(map(self._sanitize_item_before_resolve, items))
         while items_:
             for index, item in enumerate(items_):
-                # Sanitize item
-                item_ = item
-                if not isinstance(item_, tuple):
-                    item_ = (item_, item_)
-                if len(item_) < 2:
-                    item_ = (item_[0], item_[0])
                 # Check if already exist
-                if item_[1] in self:
+                if item[0] in self or item[1] in self:
+                    if self.debug:
+                        print('Ignoring {} - {}'.format(item[0], item[1]))
                     del items_[index]
                     continue
                 # Resolve 2nd arg if is a primitive or instance
-                if not isinstance(item_[1], type):
-                    self.set(item_[0], item_[1])
+                if not isinstance(item[1], type):
+                    if self.debug:
+                        print('Adding {} - {}'.format(item[0], item[1]))
+                    self.set(item[0], item[1])
                     del items_[index]
                     continue
                 # Resolve or Postpone 2nd arg if is a type
-                parameters = signature(item_[1]).parameters.items()
-                kwargs: Dict[str, Any] = {}
-                for parameter in parameters:
-                    typ: Type[Any] = parameter[1].annotation
-                    if typ in _primitives:
-                        raise TypeError(f'Parameter {parameter[0]} can not be primitive to self-resolve')
-                    if typ in self:
-                        kwargs.update({parameter[0]: self.get(typ)})
-                        continue
-                    items_.append(typ)
-                    kwargs = {}
-                    break
-                # Resolve 2nd arg when all args are ready
-                if len(parameters) == len(kwargs.keys()):
-                    self.set(item_[0], item_[1](**kwargs))
+                kwargs = self._resolve_or_postpone_item(item, items_)
+                if kwargs is not None:
+                    if self.debug:
+                        print('Resolving {}'.format(item[1]))
+                    inst = item[1](**kwargs)
+                    if self.debug:
+                        print('Adding {} - {}'.format(item[0], item[1]))
+                    self.set(item[0], inst)
                     del items_[index]
 
-    def set(self, key: ContainerKey, val: ContainerValue = ...) -> None:  # type: ignore
+    def set(self, key: ContainerKey, val: _T = ...) -> None:  # type: ignore
         """
         e.g. 1
         container = Container()
@@ -75,14 +67,14 @@ class Container(dict):
         if isinstance(key, type):
             key = f'{key.__module__}.{key.__name__}'
         if _is_object(key):
-            val = key
+            val = key  # type: ignore
             key = f'{key.__class__.__module__}.{key.__class__.__name__}'
         keys = cast(str, key).split('.')
         for key in keys[:-1]:
             here = here.setdefault(key, {})
         here[keys[-1]] = val
 
-    def get(self, key: ContainerKey, typ: Optional[Type[ContainerValue]] = None) -> ContainerValue:  # type: ignore
+    def get(self, key: ContainerKey, typ: Optional[Type[_T]] = None) -> _T:  # type: ignore
         """
         e.g. 1
         container = Container({'config': {'version': '0.1.0'}, 'app.libs.MyClass': '...'})
@@ -124,3 +116,33 @@ class Container(dict):
             return True
         except (IndexError, KeyError, TypeError):
             return False
+
+    @staticmethod
+    def _sanitize_item_before_resolve(item: Union[ContainerKey, Tuple[ContainerKey, _T]]) -> Tuple[ContainerKey, _T]:
+        item_ = item
+        if not isinstance(item_, tuple):
+            item_ = (item_, item_)
+        if len(item_) < 2:
+            item_ = (item_[0], item_[0])
+        return item_  # type: ignore
+
+    def _resolve_or_postpone_item(
+        self, item: Tuple[ContainerKey, _T], items: List[Tuple[ContainerKey, _T]]
+    ) -> Optional[Dict[str, Any]]:
+        parameters = signature(item[1]).parameters.items()  # type: ignore
+        kwargs: Dict[str, Any] = {}
+        for parameter in parameters:
+            typ: Type[Any] = parameter[1].annotation
+            if typ in _primitives:
+                raise TypeError(f'Parameter {parameter[0]} can not be primitive to self-resolve')
+            if typ in self:
+                kwargs.update({parameter[0]: self.get(typ)})
+                continue
+            if self.debug:
+                print('Postponing {}'.format(typ))
+            items.append((typ, typ))  # type: ignore
+            kwargs = {}
+            break
+        if len(parameters) == len(kwargs.keys()):
+            return kwargs
+        return None
