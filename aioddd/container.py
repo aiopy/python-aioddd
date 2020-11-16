@@ -74,32 +74,41 @@ class Container(dict):
             here = here.setdefault(key, {})
         here[keys[-1]] = val
 
-    def get(self, key: ContainerKey, typ: Optional[Type[_T]] = None) -> _T:  # type: ignore
+    def get(self, key: ContainerKey, typ: Optional[Type[_T]] = None, instance_of: bool = False) -> _T:  # type: ignore
         """
         e.g. 1
         container = Container({'config': {'version': '0.1.0'}, 'app.libs.MyClass': '...'})
         container.get('config.version')  # '0.1.0'
         container.get(MyClass)  # '...'
+        container.get(Service, instance_of=True)  # List[Service]
         e.g. 2
         container = Container({'config': {'version': '0.1.0'})
         container.get('config.version', typ=str)  # Checks type
         """
         here = self
-        if isinstance(key, type) and not typ:
-            key = f'{key.__module__}.{key.__name__}'
-        if _is_object(key) and not typ:
-            key = f'{key.__class__.__module__}.{key.__class__.__name__}'
+        if instance_of:
+            key: Type[Any] = key if isinstance(key, type) else type(key) if _is_object(key) else None  # type: ignore
+            if not key:
+                raise ValueError('key parameter must be a type or object non-primitive to use instance_of parameter')
+            return self._get_instance_of(here, key)  # type: ignore
+        if isinstance(key, type):
+            typ = None
+            key = '{}.{}'.format(key.__module__, key.__name__)
+        if _is_object(key):
+            typ = None
+            key = '{}.{}'.format(key.__class__.__module__, key.__class__.__name__)
         keys = cast(str, key).split('.')
+        original_key = key
         for key in keys[:-1]:
             if key in here and isinstance(here[key], dict):
                 here = here[key]
         try:
             val = here[keys[-1]]
             if typ and not isinstance(val, (typ,)):
-                raise TypeError(f'<{key}{f": {typ.__name__}" if typ else ""}> does not exist in container')
+                raise TypeError('<{}: {}> does not exist in container'.format(original_key, typ.__name__))
             return val
         except KeyError:
-            raise KeyError(f'<{key}{f": {typ.__name__}" if typ else ""}> does not exist in container')
+            raise KeyError('<{}> does not exist in container'.format(original_key))
 
     def __contains__(self, *o) -> bool:  # type: ignore
         """
@@ -134,7 +143,7 @@ class Container(dict):
         for parameter in parameters:
             typ: Type[Any] = parameter[1].annotation
             if typ in _primitives:
-                raise TypeError(f'Parameter {parameter[0]} can not be primitive to self-resolve')
+                raise TypeError('Parameter {} can not be primitive to self-resolve'.format(parameter[0]))
             if typ in self:
                 kwargs.update({parameter[0]: self.get(typ)})
                 continue
@@ -147,3 +156,16 @@ class Container(dict):
         if len(parameters) == len(kwargs.keys()):
             return kwargs
         return None
+
+    @classmethod
+    def _get_instance_of(cls, items: Dict[str, Any], typ: Type[Any]) -> List[Any]:
+        instances = []
+        for _, val in items.items():
+            if isinstance(val, typ):
+                instances.append(val)
+            elif isinstance(val, dict):
+                instances = [*instances, *cls._get_instance_of(val, typ)]
+            elif isinstance(val, list):
+                for val_ in val:
+                    instances = [*instances, *cls._get_instance_of({'': val_}, typ)]
+        return list(set(instances))

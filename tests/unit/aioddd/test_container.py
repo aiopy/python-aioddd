@@ -19,10 +19,10 @@ def test_container() -> None:
     class _Test:
         value: str = 'foo'
 
-    class _MyService:
+    class _MyService(_Test):
         pass
 
-    class _MyAnotherService:
+    class _MyAnotherService(_Test):
         pass
 
     tz = 'UTC'
@@ -48,6 +48,7 @@ def test_container() -> None:
     assert container.get(my_svc) is my_svc
     assert container.get(_MyAnotherService) is my_another_svc
     assert container.get(my_another_svc) is my_another_svc
+    assert len(container.get(_Test, instance_of=True)) == 3
 
     pytest.raises(TypeError, lambda: container.get(key='services.foo', typ=str))
     pytest.raises(KeyError, lambda: container.get(key='services.bar'))
