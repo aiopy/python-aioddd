@@ -138,11 +138,12 @@ class Container(dict):
             if typ in self:
                 kwargs.update({parameter[0]: self.get(typ)})
                 continue
-            if self.debug:
-                print('Postponing {}'.format(typ))
-            items.append((typ, typ))  # type: ignore
-            kwargs = {}
-            break
+            if typ not in [i[0] for i in items]:
+                if self.debug:
+                    print('Postponing {}'.format(typ))
+                items.append((typ, typ))  # type: ignore
+                kwargs = {}
+                break
         if len(parameters) == len(kwargs.keys()):
             return kwargs
         return None
