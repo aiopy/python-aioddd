@@ -186,28 +186,22 @@ class Container(dict):
         for parameter in parameters:
             name: str = parameter[0]
             typ: Type[Any] = parameter[1].annotation
+            print(item)
             if typ in _primitives:
-                if name not in item[2]:
-                    raise TypeError('Parameter {} can not be primitive to self-resolve'.format(name))
-                val = item[2].get(name)
-                if isinstance(val, tuple) and len(val) == 2 and callable(val[1]):
-                    try:
-                        if self.debug:
-                            print('Trying resolve parameter {} of {}'.format(name, item[1]))
-                        item[2][name] = val[1](self)
-                        del self._parameter_resolvers[val[0]]
-                        val = item[2][name]
-                    except (KeyError, ValueError):
-                        if self.debug:
-                            print('Postponing parameter resolver {}'.format(typ))
-                        kwargs = {}
-                        break
+                val = self._resolve_or_postpone_item_parameter(name, typ, item)
+                if val is None:
+                    kwargs = {}
+                    break
                 if not isinstance(val, typ):
                     raise TypeError('<{}: {}> wrong type <{}> given'.format(name, typ.__name__, type(val).__name__))
                 kwargs.update({name: val})
                 continue
             if typ in self:
-                kwargs.update({name: self.get(typ)})
+                val = self._resolve_or_postpone_item_parameter(name, typ, item)
+                if val is not None:
+                    kwargs.update({name: val})
+                else:
+                    kwargs.update({name: self.get(typ)})
                 continue
             if typ not in [i[0] for i in items]:
                 if self.debug:
@@ -231,3 +225,26 @@ class Container(dict):
                 for val_ in val:
                     instances = [*instances, *cls._get_instance_of({'': val_}, typ)]
         return list(set(instances))
+
+    def _resolve_or_postpone_item_parameter(
+        self,
+        name: str,
+        typ: Type[Any],
+        item: Tuple[ContainerKey, _T, Dict[str, Any]],
+    ) -> Any:
+        if name not in item[2]:
+            return None
+        val = item[2].get(name)
+        if isinstance(val, tuple) and len(val) == 2 and callable(val[1]):
+            try:
+                if self.debug:
+                    print('Trying resolve parameter {} of {}'.format(name, item[1]))
+                index = val[0]
+                item[2][name] = val[1](self)
+                self._parameter_resolvers = self._parameter_resolvers[:index] + self._parameter_resolvers[index + 1 :]
+                return item[2][name]
+            except (KeyError, ValueError):
+                if self.debug:
+                    print('Postponing parameter resolver {}'.format(typ))
+                return None
+        return val
