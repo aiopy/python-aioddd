@@ -1,5 +1,16 @@
 from inspect import signature
-from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 
 _T = TypeVar('_T')
 
@@ -23,8 +34,30 @@ ContainerKey = Union[str, Type[Any], object]
 
 class Container(dict):
     debug: bool = False
+    _parameter_resolvers: List[Callable[['Container'], Any]] = []
 
-    def resolve(self, items: List[Union[ContainerKey, Tuple[ContainerKey, _T]]]) -> None:
+    def __init__(
+        self,
+        items: Optional[
+            Union[
+                Dict[str, Any], List[Union[ContainerKey, Tuple[ContainerKey, _T, Dict[str, Any]]]]  # hardcoded
+            ]  # magic
+        ] = None,
+        debug: bool = False,
+    ) -> None:
+        items = items or {}
+        self.debug = debug
+        if isinstance(items, dict):
+            super(Container, self).__init__(items)
+        else:
+            super(Container, self).__init__({})
+            self.resolve(items)
+
+    def resolve_parameter(self, fn: Callable[['Container'], Any]) -> Tuple[int, Callable[['Container'], Any]]:
+        self._parameter_resolvers.append(fn)
+        return len(self._parameter_resolvers) - 1, fn
+
+    def resolve(self, items: List[Union[ContainerKey, Tuple[ContainerKey, _T, Dict[str, Any]]]]) -> None:
         items_ = list(map(self._sanitize_item_before_resolve, items))
         while items_:
             for index, item in enumerate(items_):
@@ -97,7 +130,9 @@ class Container(dict):
         if _is_object(key):
             typ = None
             key = '{}.{}'.format(key.__class__.__module__, key.__class__.__name__)
-        keys = cast(str, key).split('.')
+        if not isinstance(key, str):
+            raise KeyError('<{}> does not exist in container'.format(key))
+        keys = key.split('.')
         original_key = key
         for key in keys[:-1]:
             if key in here and isinstance(here[key], dict):
@@ -127,30 +162,57 @@ class Container(dict):
             return False
 
     @staticmethod
-    def _sanitize_item_before_resolve(item: Union[ContainerKey, Tuple[ContainerKey, _T]]) -> Tuple[ContainerKey, _T]:
-        item_ = item
-        if not isinstance(item_, tuple):
-            item_ = (item_, item_)
-        if len(item_) < 2:
-            item_ = (item_[0], item_[0])
-        return item_  # type: ignore
+    def _sanitize_item_before_resolve(
+        item: Union[ContainerKey, Tuple[ContainerKey, _T, Dict[str, Any]]]
+    ) -> Tuple[ContainerKey, _T, Dict[str, Any]]:
+        if not isinstance(item, tuple):
+            return item, item, {}  # type: ignore
+        length = len(item)
+        if length == 1:
+            return item[0], item[0], {}
+        if length == 2:
+            return item[0], item[1], {}
+        if length >= 3:
+            return item[:3]  # type: ignore
+        raise ValueError('Tuple must be at least of one item')
 
     def _resolve_or_postpone_item(
-        self, item: Tuple[ContainerKey, _T], items: List[Tuple[ContainerKey, _T]]
+        self,
+        item: Tuple[ContainerKey, _T, Dict[str, Any]],
+        items: List[Tuple[ContainerKey, _T, Dict[str, Any]]],
     ) -> Optional[Dict[str, Any]]:
         parameters = signature(item[1]).parameters.items()  # type: ignore
         kwargs: Dict[str, Any] = {}
         for parameter in parameters:
+            name: str = parameter[0]
             typ: Type[Any] = parameter[1].annotation
             if typ in _primitives:
-                raise TypeError('Parameter {} can not be primitive to self-resolve'.format(parameter[0]))
+                if name not in item[2]:
+                    raise TypeError('Parameter {} can not be primitive to self-resolve'.format(name))
+                val = item[2].get(name)
+                if isinstance(val, tuple) and len(val) == 2 and callable(val[1]):
+                    try:
+                        if self.debug:
+                            print('Trying resolve parameter {} of {}'.format(name, item[1]))
+                        item[2][name] = val[1](self)
+                        del self._parameter_resolvers[val[0]]
+                        val = item[2][name]
+                    except (KeyError, ValueError):
+                        if self.debug:
+                            print('Postponing parameter resolver {}'.format(typ))
+                        kwargs = {}
+                        break
+                if not isinstance(val, typ):
+                    raise TypeError('<{}: {}> wrong type <{}> given'.format(name, typ.__name__, type(val).__name__))
+                kwargs.update({name: val})
+                continue
             if typ in self:
-                kwargs.update({parameter[0]: self.get(typ)})
+                kwargs.update({name: self.get(typ)})
                 continue
             if typ not in [i[0] for i in items]:
                 if self.debug:
                     print('Postponing {}'.format(typ))
-                items.append((typ, typ))  # type: ignore
+                items.append((typ, typ, {}))  # type: ignore
                 kwargs = {}
                 break
         if len(parameters) == len(kwargs.keys()):

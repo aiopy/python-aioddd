@@ -17,7 +17,8 @@ def test_container() -> None:
     assert container.__contains__('services')
 
     class _Test:
-        value: str = 'foo'
+        def __init__(self, value: str):
+            self.value = value
 
     class _MyService(_Test):
         pass
@@ -26,13 +27,18 @@ def test_container() -> None:
         pass
 
     tz = 'UTC'
-    svc = _Test()
-    my_svc = _MyService()
-    my_another_svc = _MyAnotherService()
+    my_svc = _MyService('foo_my_svc')
+    my_another_svc = _MyAnotherService('foo_my_another_svc')
 
     container.set(key='config.tz', val=tz)
-    container.set(key='services.foo', val=svc)
-    container.resolve([(_MyService, my_svc), my_another_svc])
+    container.set(key='foo', val='foo')
+    container.resolve(
+        [
+            ('services.foo', _Test, {'value': container.resolve_parameter(lambda di: di.get('foo'))}),
+            (_MyService, my_svc),
+            my_another_svc,
+        ]
+    )
 
     assert container.__contains__('config.tz')
     assert container.__contains__('services.foo')
@@ -43,7 +49,7 @@ def test_container() -> None:
 
     assert container.get(key='config.environment', typ=str) == env
     assert container.get(key='config.tz', typ=str) == tz
-    assert container.get(key='services.foo', typ=_Test) is svc
+    assert container.get(key='services.foo', typ=_Test)
     assert container.get(_MyService) is my_svc
     assert container.get(my_svc) is my_svc
     assert container.get(_MyAnotherService) is my_another_svc
