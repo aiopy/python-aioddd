@@ -1,6 +1,6 @@
 [metadata]
 name = "aioddd"
-version = "1.2.7"
+version = "1.2.8"
 description = "Async Python DDD utilities library."
 license = "MIT"
 authors = ["ticdenis <denisnavarroalcaide@outlook.es>"]
