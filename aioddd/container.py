@@ -186,7 +186,6 @@ class Container(dict):
         for parameter in parameters:
             name: str = parameter[0]
             typ: Type[Any] = parameter[1].annotation
-            print(item)
             if typ in _primitives:
                 val = self._resolve_or_postpone_item_parameter(name, typ, item)
                 if val is None:
