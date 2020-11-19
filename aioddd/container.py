@@ -202,6 +202,11 @@ class Container(dict):
                 else:
                     kwargs.update({name: self.get(typ)})
                 continue
+            if typ not in _primitives:
+                val = self._resolve_or_postpone_item_parameter(name, typ, item)
+                if val is not None:
+                    kwargs.update({name: val})
+                    continue
             if typ not in [i[0] for i in items]:
                 if self.debug:
                     print('Postponing {}'.format(typ))
