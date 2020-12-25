@@ -1,5 +1,6 @@
 from inspect import signature
 from typing import (
+    AbstractSet,
     Any,
     Callable,
     Dict,
@@ -12,13 +13,15 @@ from typing import (
     cast,
 )
 
+from .helpers import typing_get_args, typing_get_origin
+
 _T = TypeVar('_T')
 
 _primitives = (bytes, bytearray, bool, int, float, str, dict, tuple, list, set, slice, map, zip)
 
 
 def _is_primitive(val: Any) -> bool:
-    return isinstance(val, _primitives)  # type: ignore
+    return isinstance(val, _primitives) or val in _primitives  # type: ignore
 
 
 def _is_object(val: Any) -> bool:
@@ -27,6 +30,10 @@ def _is_object(val: Any) -> bool:
 
 def _is_simple(val: Any) -> bool:
     return not _is_object(val)
+
+
+def _is_optional(field: Any) -> bool:  # pragma: no cover
+    return typing_get_origin(field) is Union and type(None) in typing_get_args(field)
 
 
 ContainerKey = Union[str, Type[Any], object]
@@ -68,7 +75,7 @@ class Container(dict):
                     del items_[index]
                     continue
                 # Resolve 2nd arg if is a primitive or instance
-                if not isinstance(item[1], type):
+                if not isinstance(item[1], type) and len(item[2].keys()) == 0:
                     if self.debug:
                         print('Adding {} - {}'.format(item[0], item[1]))
                     self.set(item[0], item[1])
@@ -79,7 +86,7 @@ class Container(dict):
                 if kwargs is not None:
                     if self.debug:
                         print('Resolving {}'.format(item[1]))
-                    inst = item[1](**kwargs)
+                    inst = item[1](**kwargs)  # type: ignore
                     if self.debug:
                         print('Adding {} - {}'.format(item[0], item[1]))
                     self.set(item[0], inst)
@@ -183,12 +190,13 @@ class Container(dict):
     ) -> Optional[Dict[str, Any]]:
         parameters = signature(item[1]).parameters.items()  # type: ignore
         kwargs: Dict[str, Any] = {}
+        item[2].update(self._sanitize_item_parameters_before_resolve_or_postpone(parameters, item[2]))
         for parameter in parameters:
             name: str = parameter[0]
             typ: Type[Any] = parameter[1].annotation
             if typ in _primitives:
                 val = self._resolve_or_postpone_item_parameter(name, typ, item)
-                if val is None:
+                if val is None or parameter[1].default is None:
                     kwargs = {}
                     break
                 if not isinstance(val, typ):
@@ -204,7 +212,7 @@ class Container(dict):
                 continue
             if typ not in _primitives:
                 val = self._resolve_or_postpone_item_parameter(name, typ, item)
-                if val is not None:
+                if val is not None or _is_optional(typ):
                     kwargs.update({name: val})
                     continue
             if typ not in [i[0] for i in items]:
@@ -242,7 +250,7 @@ class Container(dict):
         if isinstance(val, tuple) and len(val) == 2 and callable(val[1]):
             try:
                 if self.debug:
-                    print('Trying resolve parameter {} of {}'.format(name, item[1]))
+                    print('Trying resolve parameter "{}" from {}'.format(name, item[1]))
                 index = val[0]
                 item[2][name] = val[1](self)
                 self._parameter_resolvers = self._parameter_resolvers[:index] + self._parameter_resolvers[index + 1 :]
@@ -252,3 +260,15 @@ class Container(dict):
                     print('Postponing parameter resolver {}'.format(typ))
                 return None
         return val
+
+    @staticmethod
+    def _sanitize_item_parameters_before_resolve_or_postpone(
+        meta_params: AbstractSet, params: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        for meta_param in meta_params:
+            name: str = meta_param[0]
+            typ: Type[Any] = meta_param[1].annotation
+            if name not in params and (_is_primitive(typ) or _is_optional(typ)):
+                val = meta_param[1].default
+                params.update({name: val})
+        return params
