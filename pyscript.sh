@@ -3,7 +3,7 @@
 set -e
 
 _help() {
-  echo "Usage:  pyscript.sh [OPTIONS] COMMAND
+  echo "Usage:  $0 [OPTIONS] COMMAND
 
 Commands:
   install                             Install Python dependencies
@@ -26,13 +26,17 @@ _version() {
 }
 
 _install() {
-  pip3 uninstall -y uuid # For avoiding Python 3.9 issues
-  pip3 install -r requirements-dev.txt
+  python3 -m pip install -r requirements-dev.txt
   pre-commit install --hook-type commit-msg || true
+}
+
+_build_docs() {
+  python3 -m mkdocs build -f ./docs_src/mkdocs.yml -d ./../docs
 }
 
 _build() {
   python3 setup.py sdist bdist_wheel
+  _build_docs
 }
 
 _deploy() {
@@ -95,10 +99,11 @@ export PYTHONPATH=.
 export PYTHONDONTWRITEBYTECODE=1
 export PYTHONUNBUFFERED=1
 
+# shellcheck disable=SC2269
 case "$function" in
 -h | --help) function=help ;;
 -v | --version) function=version ;;
-help | version | build | deploy | install | fmt | security_analysis | static_analysis | test | coverage | clean) function=$function ;;
+help | version | build | build_docs | deploy | install | fmt | security_analysis | static_analysis | test | coverage | clean) function=$function ;;
 *) echo >&2 "pyscript: '$function' is not a pyscript command." && exit 1 ;;
 esac
 

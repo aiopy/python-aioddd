@@ -1,20 +1,27 @@
-# Async Python DDD utilities library
+# Librería de utilidades Async Python de DDD
 
-aioddd is an async Python DDD utilities library.
+¿Qué ofrece?:
 
-## Installation
+* **Aggregates**: Aggregate & AggregateRoot
+* **ValueObjects**: Id, Timestamp & StrDateTime
+* **CQRS**: Command, CommandBus, SimpleCommandBus, Query, Response, QueryHandler, QueryBus & SimpleQueryBus
+* **EventSourcing**: Event, EventMapper, EventPublisher, EventHandler, EventBus, SimpleEventBus & InternalEventPublisher
+* **Errors**: raise_, BaseError, NotFoundError, ConflictError, BadRequestError, UnauthorizedError, ForbiddenError, UnknownError, IdInvalidError, TimestampInvalidError, DateTimeInvalidError, EventMapperNotFoundError, EventNotPublishedError, CommandNotRegisteredError & QueryNotRegisteredError
+* **DependencyInjection** (⚠ will move it to another package): Container
+* **Tests**: AsyncMock & mock
+* **Utils**: get_env & get_simple_logger
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install aioddd.
+## Requisitos
 
-```bash
-pip install aioddd
+- Python 3.6+
+
+## Instalación
+
+```shell
+python3 -m pip install aioddd
 ```
 
-## Documentation
-
-- Visit [aioddd docs](https://ticdenis.github.io/python-aioddd/).
-
-## Usage
+## Ejemplo
 
 ```python
 from asyncio import get_event_loop
@@ -73,16 +80,9 @@ if __name__ == '__main__':
     get_event_loop().run_until_complete(main())
 ```
 
-## Requirements
-
-- Python >= 3.6
-
-## Contributing
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
-
-## License
+## Licencia
 
 [MIT](https://github.com/ticdenis/python-aioddd/blob/master/LICENSE)
+
+
+### WIP
