@@ -54,14 +54,8 @@ class EventMapper:
 
     def decode(self, data: Dict[str, Any]) -> Event:
         attributes = self.event_type.Attributes(**data['attributes'])  # type: ignore
-        return self.event_type(
-            attributes=attributes,
-            meta=self.event_type.Meta(
-                id=data['id'],
-                type=data['type'],
-                occurred_on=data['occurred_on'],
-            ),
-        )
+        meta = self.event_type.Meta(id=data['id'], type=data['type'], occurred_on=data['occurred_on'])
+        return self.event_type(attributes=attributes, meta=meta)
 
     @staticmethod
     def map_attributes(attributes: Event.Attributes) -> Dict[str, Any]:
