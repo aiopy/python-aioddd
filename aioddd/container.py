@@ -1,4 +1,9 @@
+"""
+This file will be promoted as a package (aiodi) in the next major according to the semver.
+"""
+
 from inspect import signature
+from logging import getLogger
 from typing import (
     AbstractSet,
     Any,
@@ -15,13 +20,15 @@ from typing import (
 
 from .helpers import typing_get_args, typing_get_origin
 
+_logger = getLogger('aiodi')
+
 _T = TypeVar('_T')
 
 _primitives = (bytes, bytearray, bool, int, float, str, dict, tuple, list, set, slice, map, zip)
 
 
 def _is_primitive(val: Any) -> bool:
-    return isinstance(val, _primitives) or val in _primitives  # type: ignore
+    return isinstance(val, _primitives) or val in _primitives
 
 
 def _is_object(val: Any) -> bool:
@@ -71,13 +78,13 @@ class Container(dict):
                 # Check if already exist
                 if item[0] in self or item[1] in self:
                     if self.debug:
-                        print('Ignoring {} - {}'.format(item[0], item[1]))
+                        _logger.debug('Ignoring {0} - {1}'.format(item[0], item[1]))
                     del items_[index]
                     continue
                 # Resolve 2nd arg if is a primitive or instance
                 if not isinstance(item[1], type) and len(item[2].keys()) == 0:
                     if self.debug:
-                        print('Adding {} - {}'.format(item[0], item[1]))
+                        _logger.debug('Adding {0} - {1}'.format(item[0], item[1]))
                     self.set(item[0], item[1])
                     del items_[index]
                     continue
@@ -85,10 +92,10 @@ class Container(dict):
                 kwargs = self._resolve_or_postpone_item(item, items_)
                 if kwargs is not None:
                     if self.debug:
-                        print('Resolving {}'.format(item[1]))
+                        _logger.debug('Resolving {0}'.format(item[1]))
                     inst = item[1](**kwargs)  # type: ignore
                     if self.debug:
-                        print('Adding {} - {}'.format(item[0], item[1]))
+                        _logger.debug('Adding {0} - {1}'.format(item[0], item[1]))
                     self.set(item[0], inst)
                     del items_[index]
 
@@ -133,12 +140,12 @@ class Container(dict):
             return self._get_instance_of(here, key)  # type: ignore
         if isinstance(key, type):
             typ = None
-            key = '{}.{}'.format(key.__module__, key.__name__)
+            key = '{0}.{1}'.format(key.__module__, key.__name__)
         if _is_object(key):
             typ = None
-            key = '{}.{}'.format(key.__class__.__module__, key.__class__.__name__)
+            key = '{0}.{1}'.format(key.__class__.__module__, key.__class__.__name__)
         if not isinstance(key, str):
-            raise KeyError('<{}> does not exist in container'.format(key))
+            raise KeyError('<{0}> does not exist in container'.format(key))
         keys = key.split('.')
         original_key = key
         for key in keys[:-1]:
@@ -147,10 +154,10 @@ class Container(dict):
         try:
             val = here[keys[-1]]
             if typ and not isinstance(val, (typ,)):
-                raise TypeError('<{}: {}> does not exist in container'.format(original_key, typ.__name__))
+                raise TypeError('<{0}: {1}> does not exist in container'.format(original_key, typ.__name__))
             return val
         except KeyError:
-            raise KeyError('<{}> does not exist in container'.format(original_key))
+            raise KeyError('<{0}> does not exist in container'.format(original_key))
 
     def __contains__(self, *o) -> bool:  # type: ignore
         """
@@ -200,7 +207,7 @@ class Container(dict):
                     kwargs = {}
                     break
                 if not isinstance(val, typ):
-                    raise TypeError('<{}: {}> wrong type <{}> given'.format(name, typ.__name__, type(val).__name__))
+                    raise TypeError('<{0}: {1}> wrong type <{2}> given'.format(name, typ.__name__, type(val).__name__))
                 kwargs.update({name: val})
                 continue
             if typ in self:
@@ -217,7 +224,7 @@ class Container(dict):
                     continue
             if typ not in [i[0] for i in items]:
                 if self.debug:
-                    print('Postponing {}'.format(typ))
+                    _logger.debug('Postponing {0}'.format(typ))
                 items.append((typ, typ, {}))  # type: ignore
                 kwargs = {}
                 break
@@ -250,14 +257,14 @@ class Container(dict):
         if isinstance(val, tuple) and len(val) == 2 and callable(val[1]):
             try:
                 if self.debug:
-                    print('Trying resolve parameter "{}" from {}'.format(name, item[1]))
+                    _logger.debug('Trying resolve parameter "{0}" from {1}'.format(name, item[1]))
                 index = val[0]
                 item[2][name] = val[1](self)
                 self._parameter_resolvers = self._parameter_resolvers[:index] + self._parameter_resolvers[index + 1 :]
                 return item[2][name]
             except (KeyError, ValueError):
                 if self.debug:
-                    print('Postponing parameter resolver {}'.format(typ))
+                    _logger.debug('Postponing parameter resolver {0}'.format(typ))
                 return None
         return val
 
