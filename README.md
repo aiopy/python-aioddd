@@ -4,7 +4,7 @@ aioddd is an async Python DDD utilities library.
 
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install aioddd.
+Use the package manager [pip](https://pypi.org/project/aioddd/) to install aioddd.
 
 ```bash
 pip install aioddd
