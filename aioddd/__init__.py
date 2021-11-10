@@ -1,7 +1,6 @@
 # type: ignore
 # pylint: skip-file
 from .aggregates import Aggregate, AggregateRoot
-from .container import Container
 from .cqrs import (
     Command,
     CommandBus,
@@ -48,8 +47,6 @@ from .utils import env, env_resolver, get_env, get_simple_logger
 from .value_objects import Id, StrDateTime, Timestamp
 
 __all__ = (
-    # di
-    'Container',
     # aggregates
     'Aggregate',
     'AggregateRoot',
