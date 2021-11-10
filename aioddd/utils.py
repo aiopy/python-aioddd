@@ -28,17 +28,15 @@ _T = TypeVar('_T')
 _ENV: Optional[Dict[str, Any]] = None
 
 
-def env_resolver() -> Optional[Dict[str, Any]]:
-    """Override this method to use below env method to automatically cache and get type validations magically."""
-    return {}
-
-
 def env(key: Optional[str] = None, typ: Optional[Type[_T]] = None) -> _T:
+    """Get full environment variables resolved if no argument given or env var matching key and optional type given."""
     global _ENV
-    if not _ENV:
-        _ENV = env_resolver() or {}
-    if not key:
+    if _ENV is None:
+        _ENV = env.resolver()  # type: ignore
+    if key is None:
         return _ENV  # type: ignore
+    if not isinstance(_ENV, dict):
+        raise ValueError('"_ENV" variable must be a dict. Check env.resolver method.')
     if key not in _ENV:
         raise KeyError(
             '<{0}{1}> does not exist as environment variable'.format(key, ': {0}'.format(typ.__name__) if typ else '')
@@ -49,3 +47,6 @@ def env(key: Optional[str] = None, typ: Optional[Type[_T]] = None) -> _T:
             '<{0}{1}> does not exist as environment variable'.format(key, ': {0}'.format(typ.__name__) if typ else '')
         )
     return val
+
+
+env.resolver = lambda: None  # type: ignore
