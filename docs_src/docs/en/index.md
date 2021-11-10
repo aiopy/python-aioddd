@@ -7,7 +7,6 @@ Key Features:
 * **CQRS**: Command, CommandBus, SimpleCommandBus, Query, Response, QueryHandler, QueryBus & SimpleQueryBus
 * **EventSourcing**: Event, EventMapper, EventPublisher, EventHandler, EventBus, SimpleEventBus & InternalEventPublisher
 * **Errors**: raise_, BaseError, NotFoundError, ConflictError, BadRequestError, UnauthorizedError, ForbiddenError, UnknownError, IdInvalidError, TimestampInvalidError, DateTimeInvalidError, EventMapperNotFoundError, EventNotPublishedError, CommandNotRegisteredError & QueryNotRegisteredError
-* **DependencyInjection** (⚠ will move it to another package): Container
 * **Tests**: AsyncMock & mock
 * **Utils**: get_env & get_simple_logger
 
