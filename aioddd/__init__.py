@@ -43,7 +43,7 @@ from .events import (
     find_event_mapper_by_name,
     find_event_mapper_by_type,
 )
-from .utils import env, env_resolver, get_env, get_simple_logger
+from .utils import env, get_env, get_simple_logger
 from .value_objects import Id, StrDateTime, Timestamp
 
 __all__ = (
@@ -91,7 +91,6 @@ __all__ = (
     # utils
     'get_env',
     'get_simple_logger',
-    'env_resolver',
     'env',
     # value_objects
     'Id',
