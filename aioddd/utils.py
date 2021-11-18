@@ -6,7 +6,9 @@ from typing import Any, Dict, Optional, Type, TypeVar, Union
 def get_env(key: str, default: Optional[str] = None, cast_default_to_str: bool = True) -> Optional[str]:
     """Get an environment variable, return default if it is empty or doesn't exist."""
     value = getenv(key, default)
-    return str(default) if cast_default_to_str else default if not value or len(value) == 0 else value
+    if value is None or len(value) == 0:
+        value = str(default) if cast_default_to_str else default
+    return value
 
 
 def get_simple_logger(
