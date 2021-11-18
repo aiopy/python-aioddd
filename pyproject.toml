@@ -1,6 +1,6 @@
 [metadata]
 name = "aioddd"
-version = "1.3.1"
+version = "1.3.2"
 description = "Async Python DDD utilities library."
 license = "MIT"
 authors = ["ticdenis <denisnavarroalcaide@outlook.es>"]
@@ -13,7 +13,7 @@ include = ["LICENSE", "README.md"]
 
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools==58.5.3", "wheel==0.37.0"]
+requires = ["setuptools==59.1.1", "wheel==0.37.0"]
 
 [tool.black]
 include = '\.pyi?$'
