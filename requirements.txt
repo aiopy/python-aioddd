@@ -1,1 +1,2 @@
 backports-datetime-fromisoformat>=1.0.0; python_version <= "3.6"
+dataclasses>=0.8; python_version <= "3.6"
