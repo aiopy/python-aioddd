@@ -101,10 +101,10 @@ export PYTHONUNBUFFERED=1
 
 # shellcheck disable=SC2269
 case "$function" in
--h | --help) function=help ;;
--v | --version) function=version ;;
-help | version | build | build_docs | deploy | install | fmt | security_analysis | static_analysis | test | coverage | clean) function=$function ;;
+-h | --help | help) function=help ;;
+-v | --version | version) function=version ;;
+build | build_docs | deploy | install | fmt | security_analysis | static_analysis | test | coverage | clean) function=$function ;;
 *) echo >&2 "pyscript: '$function' is not a pyscript command." && exit 1 ;;
 esac
 
-eval "_$function" "$@"
+"_$function" "$@"
