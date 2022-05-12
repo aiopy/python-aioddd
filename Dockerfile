@@ -1,14 +1,24 @@
-FROM docker.io/library/python:3.6.15-slim as development
+FROM docker.io/library/python:3.6.15-slim AS production
 
 WORKDIR /app
 
-RUN apt update && apt install -y gcc
+COPY LICENSE pyproject.toml pyscript.sh README.md requirements.txt setup.py ./
 
-COPY .pre-commit-config.yaml LICENSE pyproject.toml pyscript.sh README.md requirements.txt requirements-dev.txt setup.py ./
+RUN apt update -y && python3 -m pip install --upgrade pip
+
 COPY aioddd ./aioddd/
-COPY tests ./tests/
-
-RUN sh pyscript.sh install
 
 ENTRYPOINT ["sh", "pyscript.sh"]
 CMD []
+
+FROM production AS development
+
+RUN apt install -y gcc
+
+COPY .pre-commit-config.yaml requirements-dev.txt ./
+
+RUN sh pyscript.sh install
+
+COPY docs ./docs
+COPY docs_src ./docs_src
+COPY tests ./tests

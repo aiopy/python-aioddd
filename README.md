@@ -12,7 +12,7 @@ pip install aioddd
 
 ## Documentation
 
-- Visit [aioddd docs](https://ticdenis.github.io/python-aioddd/).
+- Visit [aioddd docs](https://aiopy.github.io/python-aioddd/).
 
 ## Usage
 
@@ -85,4 +85,4 @@ Please make sure to update tests as appropriate.
 
 ## License
 
-[MIT](https://github.com/ticdenis/python-aioddd/blob/master/LICENSE)
+[MIT](https://github.com/aiopy/python-aioddd/blob/master/LICENSE)

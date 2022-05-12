@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://ticdenis.github.io/python-aioddd/</loc>
-         <lastmod>2021-11-10</lastmod>
+         <loc>https://aiopy.github.io/python-aioddd/</loc>
+         <lastmod>2022-05-12</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ticdenis.github.io/python-aioddd/en/</loc>
-         <lastmod>2021-11-10</lastmod>
+         <loc>https://aiopy.github.io/python-aioddd/en/</loc>
+         <lastmod>2022-05-12</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ticdenis.github.io/python-aioddd/es/</loc>
-         <lastmod>2021-11-10</lastmod>
+         <loc>https://aiopy.github.io/python-aioddd/es/</loc>
+         <lastmod>2022-05-12</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>

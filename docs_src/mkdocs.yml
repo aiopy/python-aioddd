@@ -1,6 +1,6 @@
 site_name: aioddd
 site_description: Async Python DDD utilities library
-site_url: https://ticdenis.github.io/python-aioddd/
+site_url: https://aiopy.github.io/python-aioddd/
 theme:
   name: material
   palette:
@@ -12,8 +12,8 @@ theme:
     - search.highlight
   icon:
     repo: fontawesome/brands/github-alt
-repo_name: ticdenis/python-aioddd
-repo_url: https://github.com/ticdenis/python-aioddd
+repo_name: aiopy/python-aioddd
+repo_url: https://github.com/aiopy/python-aioddd
 nav:
   - aioddd: index.md
   - Languages:
@@ -24,7 +24,7 @@ extra:
     - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/in/denisnavarroalcaide
     - icon: fontawesome/brands/github
-      link: https://github.com/ticdenis
+      link: https://github.com/aiopy
   alternate:
     - link: /en/
       name: en - English
