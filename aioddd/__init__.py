@@ -97,3 +97,5 @@ __all__ = (
     'Timestamp',
     'StrDateTime',
 )
+
+__version__ = '1.3.4'
