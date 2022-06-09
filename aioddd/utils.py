@@ -48,7 +48,7 @@ def env(key: Optional[str] = None, typ: Optional[Type[_T]] = None) -> _T:
         raise TypeError(
             '<{0}{1}> does not exist as environment variable'.format(key, ': {0}'.format(typ.__name__) if typ else '')
         )
-    return val
+    return val  # type: ignore
 
 
 env.resolver = lambda: None  # type: ignore

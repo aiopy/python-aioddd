@@ -10,7 +10,7 @@ else:
 
     class AsyncMock(MagicMock):  # type: ignore
         async def __call__(self, *args, **kwargs) -> None:  # type: ignore
-            return super(AsyncMock, self).__call__(*args, **kwargs)
+            return super(AsyncMock, self).__call__(*args, **kwargs)  # type: ignore
 
 
 SanitizeObject = Union[Dict[Any, Any], List[Any]]
@@ -32,7 +32,7 @@ def mock(target: Union[str, object], attributes: Optional[List[str]] = None) -> 
             target=f'{target.__module__}.{target.__name__}' if isinstance(target, object) else target,  # type: ignore
             side_effect=target_async_mock,
         )
-        return target_async_mock
+        return target_async_mock  # type: ignore
     for attribute in attributes:
         attribute_async_mock = AsyncMock()
         patch.object(
@@ -41,4 +41,4 @@ def mock(target: Union[str, object], attributes: Optional[List[str]] = None) -> 
             side_effect=attribute_async_mock,
         )
         target_async_mock[attribute] = attribute_async_mock
-    return target_async_mock
+    return target_async_mock  # type: ignore

@@ -65,14 +65,14 @@ class StrDateTime:  # pragma: no cover
     __slots__ = ('_value', '_format')
 
     def __init__(self, value: str, fmt: str = '%Y-%m-%d %H:%M') -> None:
-        self._value = datetime_fromisoformat(value).__format__(fmt)
+        self._value = str(datetime_fromisoformat(value).__format__(fmt))
         self._format = fmt
 
     @classmethod
     def now(cls, utc: bool = True, tz: Optional[tzinfo] = None, fmt: str = '%Y-%m-%d %H:%M') -> 'StrDateTime':
         if utc:
-            return cls(value=datetime.utcnow().__str__(), fmt=fmt)
-        return cls(value=datetime.now(tz=tz).__str__(), fmt=fmt)
+            return cls(value=str(datetime.utcnow()), fmt=fmt)
+        return cls(value=str(datetime.now(tz=tz)), fmt=fmt)
 
     def format(self) -> str:
         return self._format
