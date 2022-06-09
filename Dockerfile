@@ -1,10 +1,12 @@
-FROM docker.io/library/python:3.6.15-slim AS production
+FROM docker.io/library/python:3.7-slim AS production
 
 WORKDIR /app
 
-COPY LICENSE README.md pyproject.toml run-script ./
+COPY LICENSE README.md pyproject.toml ./
 
-RUN apt update -y && python3 -m pip install --upgrade pip && python3 run-script install
+RUN apt update -y &&  \
+    python3 -m pip install --upgrade pip && \
+    python3 -m pip install .
 
 COPY aioddd ./aioddd/
 
@@ -15,7 +17,7 @@ FROM production AS development
 
 RUN apt install -y gcc
 
-COPY .pre-commit-config.yaml ./
+COPY .pre-commit-config.yaml run-script ./
 
 RUN python3 run-script dev-install
 
