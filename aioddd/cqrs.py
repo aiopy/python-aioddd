@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union
 
 from .errors import CommandNotRegisteredError, QueryNotRegisteredError
 
@@ -47,7 +47,7 @@ class Query(ABC):
     pass
 
 
-class Response(dict):
+class Response(Dict[str, Any]):
     pass
 
 

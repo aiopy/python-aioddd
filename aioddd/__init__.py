@@ -46,6 +46,8 @@ from .events import (
 from .utils import env, get_env, get_simple_logger
 from .value_objects import Id, StrDateTime, Timestamp
 
+__version__ = '1.3.5'
+
 __all__ = (
     # aggregates
     'Aggregate',

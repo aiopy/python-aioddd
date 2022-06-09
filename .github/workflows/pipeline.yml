@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        python-version: ['3.6.15']
+        python-version: [ '3.6.15', '3.6', '3.7', '3.8', '3.9' ]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
@@ -23,19 +23,19 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: deps
         timeout-minutes: 1
-        run: sh pyscript.sh install
+        run: python3 run-script tox
       - name: security-analysis
         timeout-minutes: 1
-        run: sh pyscript.sh security-analysis
+        run: python3 run-script security-analysis
       - name: static-analysis
         timeout-minutes: 1
-        run: sh pyscript.sh static-analysis
+        run: python3 run-script static-analysis
       - name: test
         timeout-minutes: 3
-        run: sh pyscript.sh test
+        run: python3 run-script test
       - name: clean
         timeout-minutes: 1
-        run: sh pyscript.sh clean
+        run: python3 run-script clean
 
   CD:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -45,7 +45,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        python-version: ['3.6.15']
+        python-version: [ '3.6.15' ]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
@@ -53,11 +53,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: deps
         timeout-minutes: 1
-        run: sh pyscript.sh install
-      - name: build
-        run: sh pyscript.sh build
+        run: python3 run-script install
       - name: deploy
         env:
-            TWINE_USERNAME: ${{ secrets.POETRY_HTTP_BASIC_PYPI_USERNAME }}
-            TWINE_PASSWORD: ${{ secrets.POETRY_HTTP_BASIC_PYPI_PASSWORD }}
-        run: sh pyscript.sh deploy
+          TWINE_USERNAME: ${{ secrets.POETRY_HTTP_BASIC_PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.POETRY_HTTP_BASIC_PYPI_PASSWORD }}
+        run: python3 run-script deploy
