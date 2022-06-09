@@ -124,10 +124,7 @@ testpaths = ["tests"]
 
 [tool.run-script]
 install = "python3 -m pip install ."
-dev-install = """
-python3 -m pip install .[dev,deploy,docs,fmt,security-analysis,static-analysis,test]
-pre-commit install --hook-type commit-msg || true
-"""
+dev-install = "python3 -m pip install .[dev,deploy,docs,fmt,security-analysis,static-analysis,test]"
 deploy = """
 python3 -m build --no-isolation --wheel --sdist
 python3 -m twine upload dist/*
