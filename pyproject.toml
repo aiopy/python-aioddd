@@ -148,7 +148,7 @@ for pathname in ['./build', './*.egg-info', './dist', './var', '**/__pycache__']
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py37, py38, py39
+envlist = py37, py38, py39, py310
 isolated_build = True
 skipsdist = True
 skip_missing_interpreters = True
@@ -159,6 +159,7 @@ python =
     3.7: py37
     3.8: py38
     3.9: py39
+    3.10: py310
 
 [testenv]
 deps = .[dev,deploy,docs,fmt,security-analysis,static-analysis,test]
