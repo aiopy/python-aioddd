@@ -1,5 +1,9 @@
 # Async Python DDD utilities library
 
+[![PyPI version](https://badge.fury.io/py/aioddd.svg)](https://badge.fury.io/py/aioddd)
+[![PyPIDownloads](https://static.pepy.tech/badge/aioddd)](https://pepy.tech/project/aioddd)
+[![CI](https://github.com/aiopy/python-aioddd/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/aiopy/python-aioddd/actions/workflows/ci.yml)
+
 aioddd is an async Python DDD utilities library.
 
 ## Installation
