@@ -21,7 +21,6 @@ COPY .pre-commit-config.yaml run-script ./
 
 RUN python3 run-script dev-install
 
-COPY docs ./docs
 COPY docs_src ./docs_src
 COPY tests ./tests
 

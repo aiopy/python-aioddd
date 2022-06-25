@@ -1,0 +1,52 @@
+copyright: 'Copyright &copy; 2020 - 2022'
+
+docs_dir: '../../docs/es'
+
+extra:
+  alternate:
+    - lang: en
+    - link: /python-aioddd/en/
+      name: English
+    - link: /python-aioddd/es/
+      name: Spanish
+      lang: es
+  generator: false
+  social:
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/denisnavarroalcaide
+    - icon: fontawesome/brands/github
+      link: https://github.com/aiopy
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+nav:
+  - aioddd: index.md
+
+plugins:
+  - search:
+      lang: es
+
+repo_name: 'aiopy/python-aioddd'
+repo_url: 'https://github.com/aiopy/python-aioddd'
+
+site_description: 'Async Python DDD utilities library'
+site_dir: '../../generated/es'
+site_name: 'aioddd'
+site_url: 'https://aiopy.github.io/python-aioddd/'
+
+theme:
+  features:
+    - search.suggest
+    - search.highlight
+  icon:
+    repo: fontawesome/brands/github-alt
+  language: es
+  name: material
+  palette:
+    - accent: pink
+      primary: red
+      scheme: default
