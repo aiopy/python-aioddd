@@ -1,6 +1,6 @@
 from logging import NOTSET, Formatter, Logger, StreamHandler, getLogger
 from os import getenv
-from typing import Any, Dict, Optional, Type, TypeVar, Union
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
 
 
 def get_env(key: str, default: Optional[str] = None, cast_default_to_str: bool = True) -> Optional[str]:
@@ -9,6 +9,38 @@ def get_env(key: str, default: Optional[str] = None, cast_default_to_str: bool =
     if value is None or len(value) == 0:
         value = str(default) if cast_default_to_str else default
     return value
+
+
+def get_str_env(key: str, default: str = '') -> str:
+    return cast(str, get_env(key=key, default=default, cast_default_to_str=True))
+
+
+_boolean_positive_values: List[str] = ['True', 'true', 'yes', 'Y', 'y', '1']
+
+
+def get_bool_env(key: str, default: Union[bool, int] = False) -> bool:
+    return get_env(key=key, default=str(int(default)), cast_default_to_str=False) in _boolean_positive_values
+
+
+def get_int_env(key: str, default: Union[bool, int] = 0) -> int:
+    val = cast(str, get_env(key=key, default=str(int(default)), cast_default_to_str=False))
+    return int(val) if val.isdigit() else default
+
+
+def get_float_env(key: str, default: Union[bool, int, float] = 0) -> float:
+    val = cast(str, get_env(key=key, default=str(float(default)), cast_default_to_str=False))
+    return float(val) if val.isdigit() or val.replace('.', '').isdigit() else default
+
+
+def get_list_str_env(
+    key: str,
+    default: Optional[List[str]] = None,
+    *,
+    delimiter: str = ',',
+    allow_empty: bool = True,
+) -> List[str]:
+    val = cast(str, get_env(key=key, default='' if allow_empty else delimiter.join(default or [])))
+    return [] if allow_empty and (val is None or len(val) == 0) else val.split(delimiter)
 
 
 def get_simple_logger(
