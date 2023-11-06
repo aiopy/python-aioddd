@@ -56,7 +56,7 @@ from .utils import (
 )
 from .value_objects import Id, StrDateTime, Timestamp
 
-__version__ = '1.3.8'
+__version__ = '1.4.0'
 
 __all__ = (
     # aggregates
