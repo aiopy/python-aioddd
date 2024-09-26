@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
 ## Requirements
 
-- Python >= 3.7
+- Python >= 3.9
 
 ## Contributing
 

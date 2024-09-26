@@ -9,7 +9,7 @@ def test_aggregates() -> None:
         pass
 
     agg = _TestAggregateRoot()
-    evt = _TestEvent({})
+    evt = _TestEvent(_TestEvent.Attributes())
 
     assert not len(agg.pull_aggregate_events())
 
