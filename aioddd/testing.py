@@ -1,7 +1,6 @@
 from typing import Any, Dict, List, Optional, Type, Union
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-
 SanitizeObject = Union[Dict[Any, Any], List[Any]]
 
 

@@ -1,7 +1,6 @@
 from dataclasses import asdict, dataclass
-from unittest.mock import Mock
 
-import pytest
+from pytest import raises
 
 from aioddd import (
     ConfigEventMappers,
@@ -17,7 +16,7 @@ from aioddd import (
     find_event_mapper_by_name,
     find_event_mapper_by_type,
 )
-from aioddd.testing import AsyncMock, mock
+from aioddd.testing import AsyncMock, Mock, mock
 
 
 def test_event_and_event_mapper() -> None:
@@ -66,7 +65,7 @@ def test_find_event_mapper_by_name() -> None:
 
 
 def test_not_find_event_mapper_by_name() -> None:
-    pytest.raises(EventMapperNotFoundError, lambda: find_event_mapper_by_name(name='svc.name', mappers=[]))
+    raises(EventMapperNotFoundError, lambda: find_event_mapper_by_name(name='svc.name', mappers=[]))
 
 
 def test_find_event_mapper_by_type() -> None:
@@ -85,7 +84,9 @@ def test_not_find_event_mapper_by_type() -> None:
     class _EventTest(Event):
         pass
 
-    pytest.raises(EventMapperNotFoundError, lambda: find_event_mapper_by_type(msg=_EventTest({}), mappers=[]))
+    raises(
+        EventMapperNotFoundError, lambda: find_event_mapper_by_type(msg=_EventTest(_EventTest.Attributes()), mappers=[])
+    )
 
 
 def test_config_event_mappers() -> None:
@@ -111,7 +112,6 @@ def test_config_event_mappers() -> None:
     assert isinstance(sut.all()[2], _TestEventMapper3)
 
 
-@pytest.mark.asyncio
 async def test_event_publishers() -> None:
     event_publisher_mock1 = mock(EventPublisher, ['publish'])
     event_publisher_mock2 = mock(EventPublisher, ['publish'])
@@ -132,7 +132,6 @@ async def test_event_publishers() -> None:
     event_publisher_mock3.publish.assert_called_once()
 
 
-@pytest.mark.asyncio
 async def test_simple_event_bus() -> None:
     event_handler_mock1 = Mock()
     event_handler_mock2 = Mock()
@@ -161,7 +160,6 @@ async def test_simple_event_bus() -> None:
     event_handler_mock3.handle.assert_called_once()
 
 
-@pytest.mark.asyncio
 async def test_internal_event_publisher() -> None:
     event_bus_mock = mock(EventBus, ['notify'])
 

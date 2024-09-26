@@ -83,4 +83,4 @@ def env(key: Optional[str] = None, typ: Optional[Type[_T]] = None) -> _T:
     return val  # type: ignore
 
 
-env.resolver = lambda: None  # type: ignore
+env.resolver = lambda: {}  # type: ignore

@@ -1,6 +1,4 @@
-from unittest.mock import Mock
-
-import pytest
+from pytest import raises
 
 from aioddd import (
     Command,
@@ -10,10 +8,9 @@ from aioddd import (
     SimpleCommandBus,
     SimpleQueryBus,
 )
-from aioddd.testing import AsyncMock
+from aioddd.testing import AsyncMock, Mock
 
 
-@pytest.mark.asyncio
 async def test_simple_command_bus() -> None:
     command_handler_mock1 = Mock()
     command_handler_mock2 = Mock()
@@ -48,7 +45,6 @@ async def test_simple_command_bus() -> None:
     command_handler_mock3.handle.assert_not_called()
 
 
-@pytest.mark.asyncio
 async def test_simple_command_bus_fails_because_command_was_not_registered() -> None:
     class _CommandTest(Command):
         pass
@@ -56,11 +52,10 @@ async def test_simple_command_bus_fails_because_command_was_not_registered() -> 
     command = _CommandTest()
     bus = SimpleCommandBus(handlers=[])
 
-    with pytest.raises(CommandNotRegisteredError):
+    with raises(CommandNotRegisteredError):
         await bus.dispatch(command=command)
 
 
-@pytest.mark.asyncio
 async def test_simple_query_bus() -> None:
     query_handler_mock1 = Mock()
     query_handler_mock2 = Mock()
@@ -96,7 +91,6 @@ async def test_simple_query_bus() -> None:
     assert res == 'test'
 
 
-@pytest.mark.asyncio
 async def test_simple_query_bus_fails_because_query_was_not_registered() -> None:
     class _QueryTest(Query):
         pass
@@ -104,5 +98,5 @@ async def test_simple_query_bus_fails_because_query_was_not_registered() -> None
     query = _QueryTest()
     bus = SimpleQueryBus(handlers=[])
 
-    with pytest.raises(QueryNotRegisteredError):
+    with raises(QueryNotRegisteredError):
         await bus.ask(query=query)

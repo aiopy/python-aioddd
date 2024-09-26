@@ -1,0 +1,15 @@
+services:
+  aioddd:
+    build:
+      context: .
+      dockerfile: Containerfile
+#      target: py39
+#      target: py310
+#      target: py311
+      target: py312
+#    image: ghcr.io/aiopy/python-aioddd:py39-${VERSION:-latest}
+#    image: ghcr.io/aiopy/python-aioddd:py310-${VERSION:-latest}
+#    image: ghcr.io/aiopy/python-aioddd:py311-${VERSION:-latest}
+    image: ghcr.io/aiopy/python-aioddd:py312-${VERSION:-latest}
+    volumes:
+      - .:/app

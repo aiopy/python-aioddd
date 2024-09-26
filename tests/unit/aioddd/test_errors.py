@@ -1,4 +1,4 @@
-import pytest
+from pytest import raises
 
 from aioddd import (
     BadRequestError,
@@ -19,7 +19,7 @@ from aioddd import (
 
 
 def test_base_error_raise_a_system_exit_exception_when_it_is() -> None:
-    pytest.raises(SystemExit, lambda: BaseError().with_exception(SystemExit()))
+    raises(SystemExit, lambda: BaseError().with_exception(SystemExit()))
 
 
 def test_base_error() -> None:
