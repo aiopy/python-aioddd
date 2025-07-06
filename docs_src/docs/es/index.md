@@ -12,7 +12,11 @@
 
 ## Requisitos
 
+<<<<<<< HEAD
+- Python 3.10+
+=======
 - Python 3.9+
+>>>>>>> main
 
 ## Instalación
 
